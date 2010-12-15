@@ -1,0 +1,714 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      statusPlugin.idl
+ * @brief     双腕ロボット用　動作プラグイン共通 インターフェース 定義ファイル
+ *
+ */
+#ifndef __STATUS_PLUGIN_IDL__
+#define __STATUS_PLUGIN_IDL__
+
+#include "HRPcontroller.idl"
+#include "hiroCommonStatus.idl"
+
+
+/*!
+ * @brief @a statusPlugin で使用する型・定数
+ */
+module statusPluginTypes
+{
+
+	/*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief statusElementで使用する定数
+	 *
+     */
+    enum statusElement
+    {
+		SYSTEM_STATUS,			///< : システム
+		CALIB_STATUS,			///< : キャリブ
+		SERVO_STATUS,			///< : サーボ
+		EMERGENCY_STATUS,		///< : エマージェンシー
+		EMERBUTTON_STATUS,		///< : エマーボタン
+		PROTECT_STATUS,			///< : プロテクト
+		MOTORHEATUP_STATUS,		///< : モーター過熱
+		FANSTOP_STATUS,			///< : ファン停止
+		MAX_ELEMENT				///< : 全要素数
+    };
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 部位を指定・取得する型
+	 *
+     */
+    typedef octet              partType;
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 軸を指定・取得する型
+	 *
+     */
+    typedef unsigned long long jointType;
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 単位系を指定・取得する型
+	 *
+     */
+    typedef unsigned short     kindType;
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief ロボットのステータスを取得する型
+	 *
+     */
+    typedef unsigned long	 robotStatusType;
+
+    /**
+	 * @ingroup statusPluginGroup_Ref
+	 * @addtogroup statusPlugin_Part_Ref Part Information
+	 * @{
+     * @brief partに使用する定数
+	 *
+     */
+    const partType PART_CHEST   = 0x01;        ///< 腰部位
+    const partType PART_NECK    = 0x02;        ///< 首部位
+    const partType PART_RARM    = 0x04;        ///< 右腕部位
+    const partType PART_LARM    = 0x08;        ///< 左腕部位
+    const partType PART_ALL     = 0x0F;        ///< 全部位
+	/** @} */
+
+    /**
+	 * @ingroup statusPluginGroup_Ref
+	 * @addtogroup statusPlugin_Joint_Ref Joint Information
+	 * @{
+     * @brief jointに使用する定数
+	 *
+     */
+    const jointType JOINT_CHEST   = 0x00000001;        ///< 腰部位の軸
+    const jointType JOINT_NECK    = 0x00000006;        ///< 首部位の軸 
+    const jointType JOINT_RARM    = 0x000001F8;        ///< 右腕部位の軸
+    const jointType JOINT_LARM    = 0x00007E00;        ///< 左腕部位の軸
+    const jointType JOINT_ALL     = 0x00007FFF;        ///< 全部位の軸
+	/** @} */
+
+    /**
+	 * @ingroup statusPluginGroup_Ref
+	 * @addtogroup statusPlugin_Kind_Ref Kind Information
+	 * @{
+     * @brief kindに使用する定数
+	 *
+     */
+    const kindType K_CHEST        = 0x00;        ///< 腰
+    const kindType K_NECK         = 0x01;        ///< 首
+    const kindType K_RARM         = 0x02;        ///< 右腕
+    const kindType K_LARM         = 0x03;        ///< 左腕
+    //const kindType K_           = 0x04;
+    //const kindType K_           = 0x05;
+    //const kindType K_           = 0x06;
+    //const kindType K_           = 0x07;
+    const kindType K_PART         = 0x07;        ///< 部位のチェック
+
+    const kindType K_ANGLE        = 0x00;        ///< 軸角度
+    const kindType K_EULER        = 0x08;        ///< オイラー角
+    const kindType K_QUATER       = 0x10;        ///< クオータニオン
+    const kindType K_MATRIX       = 0x18;        ///< マトリクス
+    //const kindType K_           = 0x20;
+    //const kindType K_           = 0x28;
+    //const kindType K_           = 0x30;
+    //const kindType K_           = 0x38;
+    const kindType K_EXPRESS      = 0x38;        ///< 表現法のチェック
+
+    const kindType K_COMMAND       = 0x000;      ///< 指令値
+    const kindType K_STATUS        = 0x040;      ///< 実際の値
+    //const kindType K_            = 0x080;
+    //const kindType K_            = 0x0C0;
+    const kindType K_COM_STAT      = 0x0C0;      ///< 種類のチェック
+
+    const kindType K_MM_DEG        = 0x000;      ///< mm deg 単位
+    const kindType K_M_RAD         = 0x100;      ///<  m rad 単位
+    //const kindType K_            = 0x200;
+    //const kindType K_            = 0x300;
+    const kindType K_DIMENSION     = 0x300;      ///< 単位系のチェック
+
+    //const kindType K_           = 0x0000;
+    const kindType K_LIM_UP       = 0x0400;      ///< 正側関節角度リミット
+    const kindType K_LIM_DOWN     = 0x0800;      ///< 負側関節角度リミット
+    const kindType K_LIM_ACC      = 0x0C00;      ///< 加速　角加速度リミット
+    const kindType K_LIM_VEL      = 0x1000;      ///< 角速度リミット
+    const kindType K_LIM_DEC      = 0x1400;      ///< 減速　角加速度リミット
+    //const kindType K_           = 0x1800;
+    //const kindType K_           = 0x1C00;
+    //const kindType K_           = 0x2000;
+    //const kindType K_           = 0x2400;
+    //const kindType K_           = 0x2800;
+    //const kindType K_           = 0x2C00;
+    //const kindType K_           = 0x3000;
+    //const kindType K_           = 0x3400;
+    //const kindType K_           = 0x3800;
+    const kindType K_MC_WRITE     = 0x3C00;      ///< 書き込み権限ＩＤ
+    const kindType K_VALUE_TYPE   = 0x3C00;      ///< 種類のチェック
+	/** @} */
+
+	/**
+	 * @ingroup statusPluginGroup_Ref
+	 * @addtogroup statusPlugin_robotStatus_Ref RobotStatus Information
+	 * @{
+     * @brief robotStatusに使用する定数
+	 *
+     */
+    const robotStatusType SYSTEM_ON       = 0x00000001;      ///< システムオン
+    const robotStatusType CALIB_YET       = 0x00000010;      ///< 未キャリブ
+    const robotStatusType CALIB_DONE      = 0x00000020;      ///< キャリブ済
+    const robotStatusType SERVO_ON        = 0x00000100;      ///< サーボON
+    const robotStatusType SERVO_OFF       = 0x00000200;      ///< サーボOFF
+    const robotStatusType EMERGENCY_CLEAR = 0x00001000;      ///< エマージェンシークリア
+    const robotStatusType SERVO_EMERGENCY = 0x00002000;      ///< サーボ異常
+    const robotStatusType SERVO_READY     = 0x00010000;      ///< サーボレディ
+    const robotStatusType EMER_OR_BUTTON  = 0x00020000;      ///< エマーorボタン
+    const robotStatusType EMER_AND_BUTTON = 0x00040000;      ///< エマーandボタン
+    const robotStatusType PROTECT_RELEASE = 0x00100000;      ///< サーボロック解除
+    const robotStatusType PROTECT_STOP    = 0x00200000;      ///< 全軸サーボロック
+    const robotStatusType PROTECT_PARTS   = 0x00400000;      ///< 一部サーボロック
+    const robotStatusType MOTOR_NORMAL    = 0x01000000;      ///< モーター通常状態
+    const robotStatusType MOTOR_HEATUP    = 0x02000000;      ///< モーター過熱状態
+    const robotStatusType FAN_MOVE        = 0x10000000;      ///< ファン作動状態
+    const robotStatusType FAN_STOP        = 0x20000000;      ///< ファン停止状態
+	/** @} */
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 関節指令値を受け渡しする場合に使用します。
+     *
+     * データの順番は、 \n
+     * 関節角度の場合 \n
+     *   軸0, 軸1, ・・・, 軸n \n
+     * ロボット座標の場合 \n
+     *   x, y, z, r, p, w \n
+     * の様に入力します。
+     */
+    typedef sequence<double> JointValues;
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief ロボットのステータスの受け渡しに使用します。
+	 *
+	 * 　
+     */
+    typedef sequence<unsigned long> RobotStatus;
+};
+
+/*!
+ * @brief 動作プラグイン共通インターフェース
+ */
+interface statusPlugin : OpenHRP::Plugin
+{
+	/*!
+	 * @addtogroup statusPluginGroup_Ref statusPlugin
+	 */
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief   ロボットの指定軸の動作状態取得 / 動作終了待ちを行ないます。
+     *
+     * @param[in, out]   joint        [in]確認する軸 [out]動作中の軸
+     *                   \n
+     *                                    - 0x00000001 : 腰ヨー軸
+     *                                    - 0x00000002 : 首ヨー軸
+     *                                    - 0x00000004 : 首ピッチ軸
+     *                                    - 0x00000008 : 右肩ヨー軸
+     *                                    - 0x00000010 : 右肩ピッチ軸
+     *                                    - 0x00000020 : 右肘ピッチ軸
+     *                                    - 0x00000040 : 右手首ヨー軸
+     *                                    - 0x00000080 : 右手首ピッチ軸
+     *                                    - 0x00000100 : 右手首ロール軸
+     *                                    - 0x00000200 : 左肩ヨー軸
+     *                                    - 0x00000400 : 左肩ピッチ軸
+     *                                    - 0x00000800 : 左肘ピッチ軸
+     *                                    - 0x00001000 : 左手首ヨー軸
+     *                                    - 0x00002000 : 左手首ピッチ軸
+     *                                    - 0x00004000 : 左手首ロール軸
+     * @param[in]      wait         動作完了を待つか否か
+     *                              - true  : 待つ
+     *                              - false : 待たない
+     * @param[out]     status       エラーステータス
+     *                              - JOINT_NUM_ERROR : 実装されていない軸が指定された。
+     *
+     * @retval         "true  (=1)" 動作中。
+     * @retval         "false (=0)" 停止中。
+     *
+     * @par <例：全軸について動作終了待ちを行う>
+     * @code
+     * rbt.Stat.inMotionJoint(0x00007fff,true)
+     * @endcode
+     * 
+     */
+    boolean inMotionJoint(
+        inout statusPluginTypes::jointType   joint,
+        in    boolean                        wait,
+        out   hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief   ロボットの指定部位の動作状態取得 / 動作終了待ちを行ないます。
+     *
+     * @param[in, out]   part         [in]確認する部位 [out]動作中の部位
+     * @param[in]      wait         動作完了を待つか否か
+     *                              - true  : 待つ
+     *                              - false : 待たない
+     * @param[out]     status       エラーステータス
+     *                              - PART_NUM_ERROR : 実装されていない部位が指定された。
+     *
+     * @retval         "true  (=1)" 動作中。
+     * @retval         "false (=0)" 停止中。
+     *
+     * @par <例：全部位について動作終了待ちを行う>
+     * @code
+     * rbt.Stat.inMotionPart(0x0f,true)
+     * @endcode
+     * 
+     */
+    boolean inMotionPart(
+        inout statusPluginTypes::partType    part,
+        in    boolean                        wait,
+        out   hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 指定された番号から順に角度を取得します
+     * @param[in]      startJoint   取得を開始する軸を指定する。
+     *                              軸番号については， @ref JointNameRef を参照。
+     * @param[in]      jointNum     取得する軸数を指定する。
+     * @param[in]      outKind      取得したい状態を指定する。 \n
+     *                               - (K_MM_DEG + K_COMMAND)  ：角度指令値　［deg］ \n
+     *                               - (K_MM_DEG + K_STATUS)   ：エンコーダ値　［deg］ \n
+     * \n
+     *                               - (K_M_RAD  + K_COMMAND)  ：角度指令値　［rad］ \n
+     *                               - (K_M_RAD  + K_STATUS)   ：エンコーダ値　［rad］ \n
+     * \n
+     *                               - (K_MM_DEG + K_LIM_UP)   ：正側関節角度リミット値　［deg］ \n
+     *                               - (K_MM_DEG + K_LIM_DOWN) ：負側関節角度リミット値　［deg］ \n
+     *                               - (K_MM_DEG + K_LIM_ACC)  ：最大加速度リミット値　［deg／sec^2］ \n
+     *                               - (K_MM_DEG + K_LIM_VEL)  ：最大速度リミット値　［deg／sec］ \n
+     *                               - (K_MM_DEG + K_LIM_DEC)  ：最大減速度リミット値　［deg／sec^2］ \n
+     * \n
+     *                               - (K_M_RAD  + K_LIM_UP)   ：正側関節角度リミット値　［rad］ \n
+     *                               - (K_M_RAD  + K_LIM_DOWN) ：負側関節角度リミット値　［rad］ \n
+     *                               - (K_M_RAD  + K_LIM_ACC)  ：最大加速度リミット値　［rad／sec^2］ \n
+     *                               - (K_M_RAD  + K_LIM_VEL)  ：最大速度リミット値　［rad／sec］ \n
+     *                               - (K_M_RAD  + K_LIM_DEC)  ：最大減速度リミット値　［rad／sec^2］
+     * \n
+     *
+     * @param[out]     joint_values 取得した値が代入される
+     * @param[out]     status       エラーステータス
+     *                              - JOINT_NUM_ERROR : 実装されていない軸が指定された。
+     *                              - OUT_KIND_ERROR : 定義されていない「出力の単位系」を入力した。
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+     *                              失敗の要因は、statusを参照。
+     *
+     * @par <例：右腕全軸の角度指令値をdegで取得する>
+     * @code
+     * rbt.Stat.getJointValue(3,6,K_MM_DEG + K_COMMAND)
+     * @endcode
+     *
+     */
+    boolean getJointValue(
+        in  octet                          startJoint,
+        in  octet                          jointNum,
+        in  statusPluginTypes::kindType    outKind,
+        out statusPluginTypes::JointValues joint_values,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 腕の位置情報を取得します。
+     *
+     * @param[in]      outKind      取得したい状態を指定する。\n
+     *                               - (K_RARM + K_MM_DEG + K_EULER  + K_COMMAND) ：右腕指令位置　(x,y,z, euler)［mm, deg］ \n
+     *                               - (K_LARM + K_MM_DEG + K_EULER  + K_COMMAND) ：左腕指令位置　(x,y,z, euler)［mm, deg］ \n
+     *                               - (K_RARM + K_MM_DEG + K_EULER  + K_STATUS)  ：右腕実物位置　(x,y,z, euler)［mm, deg］ \n
+     *                               - (K_LARM + K_MM_DEG + K_EULER  + K_STATUS)  ：左腕実物位置　(x,y,z, euler)［mm, deg］ \n
+     * \n
+     *                               - (K_RARM + K_MM_DEG + K_QUATER + K_COMMAND) ：右腕指令位置　(x,y,z, quaternion)［mm］ \n
+     *                               - (K_LARM + K_MM_DEG + K_QUATER + K_COMMAND) ：左腕指令位置　(x,y,z, quaternion)［mm］ \n
+     *                               - (K_RARM + K_MM_DEG + K_QUATER + K_STATUS)  ：右腕実物位置　(x,y,z, quaternion)［mm］ \n
+     *                               - (K_LARM + K_MM_DEG + K_QUATER + K_STATUS)  ：左腕実物位置　(x,y,z, quaternion)［mm］ \n
+     * \n
+     *                               - (K_RARM + K_MM_DEG + K_MATRIX + K_COMMAND) ：右腕指令位置　(x,y,z, matrix)［mm］ \n
+     *                               - (K_LARM + K_MM_DEG + K_MATRIX + K_COMMAND) ：左腕指令位置　(x,y,z, matrix)［mm］ \n
+     *                               - (K_RARM + K_MM_DEG + K_MATRIX + K_STATUS)  ：右腕実物位置　(x,y,z, matrix)［mm］ \n
+     *                               - (K_LARM + K_MM_DEG + K_MATRIX + K_STATUS)  ：左腕実物位置　(x,y,z, matrix)［mm］ \n
+     * \n
+     *                               - (K_RARM + K_M_RAD + K_EULER   + K_COMMAND) ：右腕指令位置　(x,y,z, euler)［m, rad］ \n
+     *                               - (K_LARM + K_M_RAD + K_EULER   + K_COMMAND) ：左腕指令位置　(x,y,z, euler)［m, rad］ \n
+     *                               - (K_RARM + K_M_RAD + K_EULER   + K_STATUS)  ：右腕実物位置　(x,y,z, euler)［m, rad］ \n
+     *                               - (K_LARM + K_M_RAD + K_EULER   + K_STATUS)  ：左腕実物位置　(x,y,z, euler)［m, rad］ \n
+     * \n
+     *                               - (K_RARM + K_M_RAD + K_QUATER  + K_COMMAND) ：右腕指令位置　(x,y,z, quaternion)［m］ \n
+     *                               - (K_LARM + K_M_RAD + K_QUATER  + K_COMMAND) ：左腕指令位置　(x,y,z, quaternion)［m］ \n
+     *                               - (K_RARM + K_M_RAD + K_QUATER  + K_STATUS)  ：右腕実物位置　(x,y,z, quaternion)［m］ \n
+     *                               - (K_LARM + K_M_RAD + K_QUATER  + K_STATUS)  ：左腕実物位置　(x,y,z, quaternion)［m］ \n
+     * \n
+     *                               - (K_RARM + K_M_RAD + K_MATRIX  + K_COMMAND) ：右腕指令位置　(x,y,z, matrix)［m］ \n
+     *                               - (K_LARM + K_M_RAD + K_MATRIX  + K_COMMAND) ：左腕指令位置　(x,y,z, matrix)［m］ \n
+     *                               - (K_RARM + K_M_RAD + K_MATRIX  + K_STATUS)  ：右腕実物位置　(x,y,z, matrix)［m］ \n
+     *                               - (K_LARM + K_M_RAD + K_MATRIX  + K_STATUS)  ：左腕実物位置　(x,y,z, matrix)［m］ \n
+     *
+     * @param[out]     joint_values 取得した値が代入される
+     * @param[out]     status       エラーステータス
+     *                              - OUT_KIND_ERROR : 定義されていない「出力の単位系」を入力した。
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+     *                              失敗の要因は、statusを参照。
+	 *
+     * @par <例：右腕指令位置を[mm,deg]で取得する>
+     * @code
+     * rbt.Stat.getPositionArm(K_RARM + K_MM_DEG + K_EULER  + K_COMMAND)
+     * @endcode
+     *
+     */
+    boolean getPositionArm(
+        in  statusPluginTypes::kindType    outKind,
+        out statusPluginTypes::JointValues joint_values,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 運動を制御しているプラグインの名前を取得する。
+     *
+     * @param[in]      jointNum     取得したい軸番号。
+     *                              軸番号については， @ref JointNameRef を参照。
+     * @param[out]     mcID         使用しているプラグインのＩＤ。
+     * @param[out]     name         使用しているプラグインの名前。
+     * @param[out]     status       エラーステータス \n
+     *                              - OUT_KIND_ERROR : 定義されていない「出力の単位系」を入力した。 \n
+     *                              - JOINT_NUM_ERROR : 実装されていない軸が指定された。 \n
+     *                              - PLUGIN_NAME_ERROR : プラグインの名前が登録されていない。
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+     *                              失敗の要因は、statusを参照。
+	 *
+     * @par <例：右肩ヨー軸(RSY)を制御しているプラグイン名を取得する>
+     * @code
+     * rbt.Stat.getChangeMcName(3)
+     * @endcode
+     *
+     */
+    boolean getChangeMcName(
+        in octet                           jointNum,
+        out double                         mcID,
+        out string                         name,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief ロボットに関連するデータを変換します。
+     *
+     * @param[in]      inValues     入力データ列。詳細はkindを参照のこと
+     *
+     * @param[in]      handOffset   ハンド取り付け位置から求めたい点までの距離。 \n
+     *                                ハンド座標系位置(x,y,z, r,p,w) \n
+     *                                ハンド座標系位置(x,y,z, quaternion) \n
+     *                                ハンド座標系位置(x,y,z, matrix) \n
+     *                                  *回転表現／単位系 はinKindに依存する \n
+     *                                省略すると、デフォルトのハンドオフセットを使用。
+     *
+     * @param[in]      inKind       変換元の単位系。 \n
+     *                                - (K_RARM + K_MM_DEG + K_ANGLE)  ：右腕「関節角度」[deg] \n
+     *                                    [inValues] 関節角度(chest, arm0, arm1, arm2, arm3, arm4, arm5) \n
+     * \n
+     *                                - (K_LARM + K_MM_DEG + K_ANGLE)  ：左腕「関節角度」[deg] \n
+     *                                    [inValues] 関節角度(chest, arm0, arm1, arm2, arm3, arm4, arm5) \n
+     * \n
+     *                                - (K_RARM + K_MM_DEG + K_EULER)  ：右腕「ロボット座標系位置」[mm, deg] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, r,p,w) \n
+     * \n
+     *                                - (K_LARM + K_MM_DEG + K_EULER)  ：左腕「ロボット座標系位置」[mm, deg] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, r,p,w) \n
+     * \n
+     * \n
+     *                                - (K_RARM + K_MM_DEG + K_QUATER)  ：右腕「ロボット座標系位置」[mm] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, quaternion) \n
+     * \n
+     *                                - (K_LARM + K_MM_DEG + K_QUATER)  ：左腕「ロボット座標系位置」[mm] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, quaternion) \n
+     * \n
+     * \n
+     *                                - (K_RARM + K_MM_DEG + K_MATRIX)  ：右腕「ロボット座標系位置」[mm] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, matrix) \n
+     * \n
+     *                                - (K_LARM + K_MM_DEG + K_MATRIX)  ：左腕「ロボット座標系位置」[mm] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, matrix) \n
+     * \n
+     * \n
+     *                                - (K_RARM + K_M_RAD + K_ANGLE)  ：右腕「関節角度」[rad] \n
+     *                                    [inValues] 関節角度(chest, arm0, arm1, arm2, arm3, arm4, arm5) \n
+     * \n
+     *                                - (K_LARM + K_M_RAD + K_ANGLE)  ：左腕「関節角度」[rad] \n
+     *                                    [inValues] 関節角度(chest, arm0, arm1, arm2, arm3, arm4, arm5) \n
+     * \n
+     *                                - (K_RARM + K_M_RAD + K_EULER)  ：右腕「ロボット座標系位置」[m, rad] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, r,p,w) \n
+     * \n
+     *                                - (K_LARM + K_M_RAD + K_EULER)  ：左腕「ロボット座標系位置」[m, rad] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, r,p,w) \n
+     * \n
+     * \n
+     *                                - (K_RARM + K_M_RAD + K_QUATER)  ：右腕「ロボット座標系位置」[m] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, quaternion) \n
+     * \n
+     *                                - (K_LARM + K_M_RAD + K_QUATER)  ：左腕「ロボット座標系位置」[m] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, quaternion) \n
+     * \n
+     * \n
+     *                                - (K_RARM + K_M_RAD + K_MATRIX)  ：右腕「ロボット座標系位置」[m] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, matrix) \n
+     * \n
+     *                                - (K_LARM + K_M_RAD + K_MATRIX)  ：左腕「ロボット座標系位置」[m] \n
+     *                                    [inValues] ロボット座標系位置(chest, x,y,z, matrix) \n
+     *
+     * @param[in]      outKind      変換後の単位系。 \n
+     *                                - (K_MM_DEG + K_ANGLE)  ：「関節角度」[deg] \n
+     *                                    [outValues] 関節角度(arm0, arm1, arm2, arm3, arm4, arm5) \n
+     * \n
+     * \n
+     *                                - (K_MM_DEG + K_EULER)  ：「ロボット座標系位置」[mm, deg] \n
+     *                                    [outValues] ロボット座標系位置(x,y,z, r,p,w) \n
+     * \n
+     * \n
+     *                                - (K_MM_DEG + K_QUATER)  ：「ロボット座標系位置」[mm] \n
+     *                                    [outValues] ロボット座標系位置(x,y,z, quaternion) \n
+     * \n
+     * \n
+     *                                - (K_MM_DEG + K_MATRIX)  ：「ロボット座標系位置」[mm] \n
+     *                                    [outValues] ロボット座標系位置(x,y,z, matrix) \n
+     * \n
+     * \n
+     *                                - (K_M_RAD + K_ANGLE)  ：「関節角度」[rad] \n
+     *                                    [outValues] 関節角度(arm0, arm1, arm2, arm3, arm4, arm5) \n
+     * \n
+     * \n
+     *                                - (K_M_RAD + K_EULER)  ：「ロボット座標系位置」[m, rad] \n
+     *                                    [outValues] ロボット座標系位置(x,y,z, r,p,w) \n
+     * \n
+     * \n
+     *                                - (K_M_RAD + K_QUATER)  ：「ロボット座標系位置」[m] \n
+     *                                    [outValues] ロボット座標系位置(x,y,z, quaternion) \n
+     * \n
+     * \n
+     *                                - (K_M_RAD + K_MATRIX)  ：「ロボット座標系位置」[m] \n
+     *                                    [outValues] ロボット座標系位置(x,y,z, matrix) \n
+     * \n
+     *
+     * @param[out]     outValues    出力データ列。詳細はkindを参照のこと
+     * @param[out]     status       エラーステータス \n
+     *                              - IN_KIND_ERROR : 定義されていない「入力の単位系」を入力した。 \n
+     *                              - OUT_KIND_ERROR : 定義されていない「出力の単位系」を入力した。 \n
+     *                              - IN_1_VALUE_LENGTH_ERROR : 入力引数「inValues」の数が異なる。 \n
+     *                              - IN_2_VALUE_LENGTH_ERROR : 入力引数「handOffset」の数が異なる。
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+     *                              失敗の要因は、statusを参照。
+	 *
+     * @par <例：右腕のロボット座標系位置(0,300,-400,200,0,-90,0)を右腕のロボット座標系位置(クォータニオン)に変換する>
+     * @code
+     * rbt.Stat.convertData((0,300,-400,200,0,-90,0), (), K_RARM + K_MM_DEG + K_EULER, K_MM_DEG + K_QUATER)
+     * @endcode
+     *
+     */
+    boolean convertData(
+        in  statusPluginTypes::JointValues inValues,
+        in  statusPluginTypes::JointValues handOffset,
+        in  statusPluginTypes::kindType    inKind,
+        in  statusPluginTypes::kindType    outKind,
+        out statusPluginTypes::JointValues outValues,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief デフォルトのハンドオフセットを設定
+     *
+     * @param[in]      handOffset   デフォルトのハンドオフセット量。
+     * @param[in]      inKind       設定する単位系。 \n
+     *                                - (K_RARM + K_MM_DEG + K_EULER)    ：右腕[mm, deg] \n
+     *                                    handOffset(x,y,z, r,p,w)  \n
+     *                                - (K_LARM + K_MM_DEG + K_EULER)    ：左腕[mm, deg] \n
+     *                                    handOffset(x,y,z, r,p,w)  \n
+     *                                - (K_RARM + K_MM_DEG + K_QUATER)   ：右腕[mm] \n
+     *                                    handOffset(x,y,z, quaternion)  \n
+     *                                - (K_LARM + K_MM_DEG + K_QUATER)   ：左腕[mm] \n
+     *                                    handOffset(x,y,z, quaternion)  \n
+     *                                - (K_RARM + K_MM_DEG + K_MATRIX)   ：右腕[mm] \n
+     *                                    handOffset(x,y,z, matrix)  \n
+     *                                - (K_LARM + K_MM_DEG + K_MATRIX)   ：左腕[mm] \n
+     *                                    handOffset(x,y,z, matrix)  \n
+     *  \n
+     *                                - (K_RARM + K_M_RAD  + K_EULER)    ：右腕[m, rad] \n
+     *                                    handOffset(x,y,z, r,p,w)  \n
+     *                                - (K_LARM + K_M_RAD  + K_EULER)    ：左腕[m, rad] \n
+     *                                    handOffset(x,y,z, r,p,w)  \n
+     *                                - (K_RARM + K_M_RAD  + K_QUATER)   ：右腕[m] \n
+     *                                    handOffset(x,y,z, quaternion)  \n
+     *                                - (K_LARM + K_M_RAD  + K_QUATER)   ：左腕[m] \n
+     *                                    handOffset(x,y,z, quaternion)  \n
+     *                                - (K_RARM + K_M_RAD  + K_MATRIX)   ：右腕[m] \n
+     *                                    handOffset(x,y,z, matrix)  \n
+     *                                - (K_LARM + K_M_RAD  + K_MATRIX)   ：左腕[m] \n
+     *                                    handOffset(x,y,z, matrix)
+     * @param[out]     status       エラーステータス \n
+     *                              - IN_KIND_ERROR : 定義されていない「入力の単位系」を入力した。 \n
+     *                              - IN_VALUE_LENGTH_ERROR : 入力引数「handOffset」の数が異なる。 \n
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+     *                              失敗の要因は、statusを参照。
+	 *
+     * @par <例：右腕に(0,0,100,0,0,0)のオフセット量をセットする>
+     * @code
+     * rbt.Stat.setHandOffset((0,-0,100,0,0,0),K_RARM + K_MM_DEG + K_EULER)
+     * @endcode
+     *
+     */
+    boolean setHandOffset(
+        in  statusPluginTypes::JointValues handOffset,
+        in  statusPluginTypes::kindType    inKind,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief デフォルトのハンドオフセットを取得
+     *
+     * @param[in]      outKind      取得する単位系。 \n
+     *                                - (K_RARM + K_MM_DEG + K_EULER)   ：右腕[mm, deg] \n
+     *                                    handOffset(x,y,z, r,p,w) \n
+     *                                - (K_LARM + K_MM_DEG + K_EULER)   ：左腕[mm, deg] \n
+     *                                    handOffset(x,y,z, r,p,w) \n
+     *                                - (K_RARM + K_MM_DEG + K_QUATER)  ：右腕[mm] \n
+     *                                    handOffset(x,y,z, quaternion) \n
+     *                                - (K_LARM + K_MM_DEG + K_QUATER)  ：左腕[mm] \n
+     *                                    handOffset(x,y,z, quaternion) \n
+     *                                - (K_RARM + K_MM_DEG + K_MATRIX)  ：右腕[mm] \n
+     *                                    handOffset(x,y,z, matrix) \n
+     *                                -  (K_LARM + K_MM_DEG + K_MATRIX)  ：左腕[mm] \n
+     *                                    handOffset(x,y,z, matrix) \n
+     * \n
+     *                                - (K_RARM + K_M_RAD  + K_EULER)   ：右腕[m, rad] \n
+     *                                    handOffset(x,y,z, r,p,w) \n
+     *                                - (K_LARM + K_M_RAD  + K_EULER)   ：左腕[m, rad] \n
+     *                                    handOffset(x,y,z, r,p,w) \n
+     *                                - (K_RARM + K_M_RAD  + K_QUATER)  ：右腕[m] \n
+     *                                    handOffset(x,y,z, quaternion) \n
+     *                                - (K_LARM + K_M_RAD  + K_QUATER)  ：左腕[m] \n
+     *                                    handOffset(x,y,z, quaternion) \n
+     *                                - (K_RARM + K_M_RAD  + K_MATRIX)  ：右腕[m] \n
+     *                                    handOffset(x,y,z, matrix) \n
+     *                                - (K_LARM + K_M_RAD  + K_MATRIX)  ：左腕[m] \n
+     *                                    handOffset(x,y,z, matrix)
+     *
+     * @param[out]     handOffset   デフォルトのハンドオフセット量。
+     * @param[out]     status       エラーステータス \n
+     *                              - OUT_KIND_ERROR : 定義されていない「出力の単位系」を入力した。
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+     *                              失敗の要因は、statusを参照。
+	 *
+     * @par <例：右腕のオフセット量をオイラー角[mm,deg]で取得する>
+     * @code
+     * rbt.Stat.setHandOffset(K_RARM + K_MM_DEG + K_EULER)
+     * @endcode
+     *
+     */
+    boolean getHandOffset(
+        in  statusPluginTypes::kindType    outKind,
+        out statusPluginTypes::JointValues handOffset,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup statusPluginGroup_Ref
+     * @brief 動作中に発生したステータスを取得します。
+     *
+	 * @ifnot ALL
+     * @param[out]     robotStatuses   ロボットのステータス
+     *                              - robotStatuses[ 0 ] : システム 
+     *                                - 0x00000001 : システムオン 
+     *                              - robotStatuses[ 1 ] : キャリブ 
+	 *                                - 0x00000010 : 未キャリブ 
+	 *                                - 0x00000020 : キャリブ済 
+	 *                              - robotStatuses[ 2 ] : サーボ 
+	 *                                - 0x00000100 : サーボON 
+	 *                                - 0x00000200 : サーボOFF 
+	 *                              - robotStatuses[ 3 ] : エマージェンシー 
+	 *                                - 0x00001000 : エマージェンシークリア 
+	 *                                - 0x00002000 : サーボ異常 
+	 *                              - robotStatuses[ 4 ] : エマーボタン 
+	 *                                - 0x00010000 : サーボレディ 
+	 *                                - 0x00020000 : エマーorボタン 
+	 *                                - 0x00040000 : エマーandボタン 
+	 *                              - robotStatuses[ 5 ] : プロテクト 
+	 *                                - 0x00100000 : サーボロック解除 
+	 *                                - 0x00200000 : 全軸サーボロック 
+	 *                                - 0x00400000 : 一部サーボロック 
+	 *                              - robotStatuses[ 6 ] : モーター過熱 
+	 *                                - 0x01000000 : モーター通常状態 
+	 *                                - 0x02000000 : モーター過熱状態 
+	 *                              - robotStatuses[ 7 ] : ファン停止 
+	 *                                - 0x10000000 : ファン作動状態 
+	 *                                - 0x20000000 : ファン停止状態 
+	 * @endif
+	 * @if ALL
+     * @param[out]     robotStatuses   ロボットのステータス
+     *                              - robotStatuses[ SYSTEM_STATUS ]      : @copydoc SYSTEM_STATUS \n
+     *                                - #SYSTEM_ON       : @copydoc SYSTEM_ON \n
+     *                              - robotStatuses[ #CALIB_STATUS  ]      : @copydoc CALIB_STATUS \n
+	 *                                - CALIB_YET       : @copydoc CALIB_YET \n
+	 *                                - #CALIB_DONE      : @copydoc CALIB_DONE \n
+	 *                              - robotStatuses[ #SERVO_STATUS ]       : @copydoc SERVO_STATUS \n
+	 *                                - #SERVO_ON        : @copydoc SERVO_ON \n
+	 *                                - #SERVO_OFF       : @copydoc SERVO_OFF \n
+	 *                              - robotStatuses[ #EMERGENCY_STATUS ]   : @copydoc EMERGENCY_STATUS \n
+	 *                                - #EMERGENCY_CLEAR : @copydoc EMERGENCY_CLEAR \n
+	 *                                - #SERVO_EMERGENCY : @copydoc SERVO_EMERGENCY \n
+	 *                              - robotStatuses[ #EMERBUTTON_STATUS ]  : @copydoc EMERBUTTON_STATUS \n
+	 *                                - #SERVO_READY : @copydoc SERVO_READY \n
+	 *                                - #EMER_OR_BUTTON  : @copydoc EMER_OR_BUTTON \n
+	 *                                - #EMER_AND_BUTTON : @copydoc EMER_AND_BUTTON \n
+	 *                              - robotStatuses[ #PROTECT_STATUS ]     : @copydoc PROTECT_STATUS \n
+	 *                                - #PROTECT_RELEASE : @copydoc PROTECT_RELEASE \n
+	 *                                - #PROTECT_STOP    : @copydoc PROTECT_STOP \n
+	 *                                - #PROTECT_PARTS : @copydoc PROTECT_PARTS \n
+	 *                              - robotStatuses[ #MOTORHEATUP_STATUS ] : @copydoc MOTORHEATUP_STATUS \n
+	 *                                - #MOTOR_NORMAL    : @copydoc MOTOR_NORMAL \n
+	 *                                - #MOTOR_HEATUP    : @copydoc MOTOR_HEATUP \n
+	 *                              - robotStatuses[ #FANSTOP_STATUS ]     : @copydoc FANSTOP_STATUS \n
+	 *                                - #FAN_MOVE        : @copydoc FAN_MOVE \n
+	 *                                - #FAN_STOP        : @copydoc FAN_STOP \n
+	 * @endif
+	 *
+     * @par <例：ステータスを取得する>
+     * @code
+     * rbt.Stat.getStatus()
+     * @endcode
+	 *
+	 */
+    void getStatus(
+		out statusPluginTypes::RobotStatus	robotStatuses
+	);
+
+};
+
+#endif
+
+//EOF

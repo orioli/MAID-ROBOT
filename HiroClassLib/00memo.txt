@@ -1,0 +1,91 @@
+
+= 構成概要 =
+ * Robot
+  * rarm
+  * larm
+  * rhand
+  * lhand
+
+== Robot ==
+ * .poweroff()
+ * .dumpLog() [TODO]
+ * .jointCalib(void);
+ * .servoON(void);
+ * .servoOFF(void);
+ * .getAngles()
+ * .getNeckAngles()
+ * .faceTo()
+ * .turnNeck()
+ * .getChestAngle()
+ * .directTo()
+ * .turnChest()
+ * .makePose()
+ * .wait(block);
+
+== rarm/larm ==
+ * .getAngles()
+ * .makePose()
+ * .moveUpper()
+ * .moveUpperTo()
+ * .moveFore()
+ * .moveForeTo()
+ * .wait()
+
+== rhand/lhand ==
+ * .resetPose()
+ * .move()
+ * .moveTo()
+ * .turn()
+ * .turnTo()
+ * .wait()
+
+= ロボットの動かし方 =
+ * 頭を動かす場合:
+  * robot.faceTo() で「目的の向き」に動かすことができます.
+  * robot.turnNeck() で現在の向きから指定角度だけ動かすことができます.
+ * 腰を動かす場合:
+  * robot.directTo() で「目的の向き」に動かすことができます.
+  * robot.turnWaist() で現在の向きから指定角度だけ動かすことができます.
+ * 右腕を動かす場合
+  * robot.rarm.makePose() で目的の姿勢をとらせることができます.
+  * robot.rarm.moveUpper() で肩と肘を指定角度だけ動かすことができます.
+  * robot.rarm.moveUpperTo() で肩と肘を目的の姿勢にするこができます.
+  * robot.rarm.moveFore() で手首を指定角度だけ動かすことができます.
+  * robot.rarm.moveForeTo() で手首を目的の姿勢にすることができます.
+  * robot.rhand.moveTo() で手先を目的の位置姿勢にすることができます.
+  *
+ * 左腕を動かす場合
+  * 右腕の場合と同様です. rarm を larm に, rhand を lhand にしてください.
+ * 全身を動かす場合
+  * 個別に動作コマンドを並べて動かすことができます.
+  * robot.makepose() で全身の角度をまとめて指定して動かすことができます.
+
+ * スピードについて
+  * 未指定時には setDefaulSpeed で設定した値が使用されます.
+  * robot の setDeafultSpeed は rarm/larm/rhand/lhand 含む全身に適用されます.
+  * rarm/larm/rhand/lhand の setDefaultSpeed は個別のオブジェクトにのみ適用
+    されます.
+  * オブジェクト生成直後は 20 が設定されます.
+
+= コンパイルメモ =
+ * 動作確認: Ubuntu/Intrepid, Windows XP/Visual C++ Express 2008
+  * 構成はReleaseでないとコンパイルできない（Pythonがdebug対応でないためであり、Pythonをdebugオプション付でセルフビルドすればこの限りではない）。
+ * swig, python, omniORB 必要.
+  * Ubuntu は swig パッケージと python-dev パッケージ
+  * Windows は http://www.swig.org から swigwin-X.X.XX.zip を取ってきて入れる.
+   * 動作確認は swigwin-1.3.40
+  * Windows はリンクするomniORBライブラリのバージョンを指定する。
+　 * clib1DLLのプロパティーを開き、構成プロパティ->リンカ->入力->追加の依存ファイルを修正する。
+　 * (OMNIORBインストールフォルダ)\lib以下にあるライブラリの名前を確認し(以下3種)、それに合わせて修正する。
+   * 例）omniORB412_rt.lib omnithread33_rt.lib omniDynamic412_rt.lib
+ * Windows は以下の環境変数を手で設定する.
+  * 環境変数Pathにswigのパスを追加する(c:\swigwin-1.3.40　等)。
+  * OMNIROOT c:\omniORB-4.1.3 とか.
+  * PYTHON_INCLUDE c:\python25\include とか
+  * PYTHON_LIB c:\python25\lib\python25.lib とか.
+  * PATH名には日本語を入れない事。必要があればomniORB、swigのフォルダをc:\以下等にコピーまたは移動する。
+! emacs設定
+// Local Variables:
+// mode: outline-minor
+// outline-regexp: "^=+"
+// End:

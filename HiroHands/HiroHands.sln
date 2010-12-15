@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test0", "test0\test0.vcproj", "{A2CA5876-BED1-4FFA-8145-79236FADD3C2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1} = {7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HiroHandsDLL", "lib\HiroHandsDLL.vcproj", "{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test1", "test1\test1.vcproj", "{86469245-F708-483E-BB3A-6D2248131DA7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1} = {7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2CA5876-BED1-4FFA-8145-79236FADD3C2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A2CA5876-BED1-4FFA-8145-79236FADD3C2}.Debug|Win32.Build.0 = Debug|Win32
+		{A2CA5876-BED1-4FFA-8145-79236FADD3C2}.Release|Win32.ActiveCfg = Release|Win32
+		{A2CA5876-BED1-4FFA-8145-79236FADD3C2}.Release|Win32.Build.0 = Release|Win32
+		{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}.Debug|Win32.Build.0 = Debug|Win32
+		{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}.Release|Win32.ActiveCfg = Release|Win32
+		{7E6FD37B-8C59-4088-B99D-E95C74CC0DB1}.Release|Win32.Build.0 = Release|Win32
+		{86469245-F708-483E-BB3A-6D2248131DA7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{86469245-F708-483E-BB3A-6D2248131DA7}.Debug|Win32.Build.0 = Debug|Win32
+		{86469245-F708-483E-BB3A-6D2248131DA7}.Release|Win32.ActiveCfg = Release|Win32
+		{86469245-F708-483E-BB3A-6D2248131DA7}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

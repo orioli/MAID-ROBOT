@@ -1,0 +1,69 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      statusPluginRealtime.idl
+ * @brief     双腕ロボット用　共通ステータス インターフェース 定義ファイル
+ *
+ */
+#ifndef __STATUS_PLUGIN_REALTIME_IDL__
+#define __STATUS_PLUGIN_REALTIME_IDL__
+
+#include "statusPlugin.idl"
+
+/*!
+ * @brief プラグイン内のみで使用するインターフェース
+ */
+interface statusPluginRealtime : statusPlugin
+{
+	/*!
+	 * @brief 運動制御権限を誰が持っているかを特定するための、
+	 *        文字列を登録する関数です。
+	 *        ロボット内部で使用する関数で、ユーザがコールする必要はありません。
+	 *
+     * @param[in, out] mcID         [in]取得したいID。[out]取得できたID。
+     * @param[in]      name         登録する名前。
+	 *
+     * @param[out]     status       エラーステータス
+     *
+     * @retval         "true  (=1)" 成功。
+     * @retval         "false (=0)" 失敗。
+	 *                              失敗の要因は、
+	 *                                ０以下のIDを指定した。
+	 */
+	boolean setMcIdToName(
+		inout double mcID,
+		in string    name,
+		out hiroCommonStatus::statSequence status
+	);
+
+	/*!
+	 * @brief ロボットに関連するデータを変換します。
+	 *
+	 * realtime用からのみ呼び出してください。
+	 * statusPlugin::convertDataと同等です。
+	 *
+	 * ただし、逆キネマは近距離を解くことに限定してください。
+	 */
+	boolean convertDataRealtime(
+		in statusPluginTypes::JointValues  inValues,
+		in statusPluginTypes::JointValues  handOffset,
+		in short        inKind,
+		in short        outKind,
+		out statusPluginTypes::JointValues outValues,
+		out hiroCommonStatus::statSequence status
+	);
+
+	/*!
+	 * @brief ロボットのステータスをセットします。
+	 *        ロボット内部で使用する関数で、ユーザがコールする必要はありません。
+     *
+     * @param[out]     lightMode       ライトモード
+     *
+	 */
+	void setStatus(
+		in unsigned long	lightMode
+	);
+};
+
+#endif
+
+//EOF

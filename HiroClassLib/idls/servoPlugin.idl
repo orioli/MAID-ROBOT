@@ -1,0 +1,239 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      servoPlugin.idl
+ * @brief     双腕ロボット用　サーボ インターフェース 定義ファイル
+ *
+ */
+#ifndef __SERVO_PLUGIN_IDL__
+#define __SERVO_PLUGIN_IDL__
+
+#include "HRPcontroller.idl"
+#include "hiroCommonStatus.idl"
+
+/*!
+ * @brief @a servoPlugin で使用する型・定数
+ */
+module servoPluginTypes
+{
+	/*!
+	 * @ingroup servoPluginGroup_Ref
+	 * @brief   ジョイントキャリブレーションの動作順序を指定するシーケンス型です。
+	 *
+	 * @c jointCalibration() において使用します。
+	 */
+	typedef sequence<long long> LngLngSeq;
+
+	/*!
+	 * @ingroup servoPluginGroup_Ref
+	 * @brief   ジョイントキャリブレーションの開始時姿勢（関節角度）を指定する配列です。
+	 *
+	 * @c jointCalibration() において使用します。
+	 */
+	typedef float   FltArray15[15];
+
+	/*!
+	 * @ingroup servoPluginGroup_Ref
+	 * @brief   ジョイントキャリブレーション中の各関節軸の回転方向を指定する配列です。
+	 *
+	 * @c jointCalibration() において使用します。
+	 */
+	typedef boolean BolArray15[15];
+    
+    /*!
+	 * @ingroup servoPluginGroup_Ref
+     * @brief   サーボ状態の詳細を取得するための配列です。
+     * 
+     * @c getStatus() において使用します。
+     */
+    typedef long long LngArray15[15];
+};
+
+/*!
+ * @brief サーボを操作するインターフェース
+ */
+interface servoPlugin : OpenHRP::Plugin
+{
+	/*!
+	 * @addtogroup servoPluginGroup_Ref servoPlugin
+	 */
+
+    /*!
+	 * @ingroup servoPluginGroup_Ref
+     * @brief   サーボ・リレーのON/OFFを行ないます。
+     * 
+     * 引数が @a false の時は，サーボをOFFします。 \n
+     * 引数が @a true  の時は，サーボの指令値と目標値を一致させて，リレーおよびサーボをONします。
+     * 
+     * 下記の場合は指令失敗となり，@a false が返されます。
+     * - 起動後にキャリブレーションを行なわない状態で，このコマンドを実行した。
+     * 
+     * @param[in]  t  サーボON/OFFの選択。
+     *                - true  (=1) : サーボをONします。
+     *                - false (=0) : サーボをOFFします。
+     * @retval     "true  (=1)" 成功。
+     * @retval     "false (=0)" 失敗。
+     */
+    boolean switchServo(in boolean t);
+
+    /*!
+	 * @ingroup servoPluginGroup_Ref
+     ** @brief   ジョイントキャリブレーションを実行します。
+     * 
+     * 指定されたキャリブレーション開始時の姿勢（開始姿勢）から，微小（4deg）に各関節を動かします。 \n
+     * 開始姿勢に移行する動作パターンを任意に定義できます。
+     * 
+     * 既にキャリブが終了している場合でも、サーボＯＦＦの状態で、このコマンドを発行すると、再度キャリブを実行できます。 \n
+     * センサエラーで、サーボが入らなくなった時や、原点がずれた疑いがある場合に再度原点復帰をすることが出来ます。
+     * 
+     * @par キャリブレーションの動作:
+     *      -# 開始姿勢へ移行する。
+     *         -# 最初に動かす関節軸の組み合わせ @a seq [0] に含まれる関節軸が， @a angles で指定した開始角度へ移行する。
+     *         -# 上記同様に， @a seq [1] , @a seq [2] ... と順番に移行する。
+     *      -# 全軸が @a rot の指定値（回転方向）に従って 4 deg 回転する。
+     *      -# サーボ OFF。
+     *      -# システム内で，結果のキャリブレーション値が保存される。
+     *      -# サーボ ON。
+     * 
+     * @par 例:
+     *      @code
+     * const servoPluginTypes::LngLngSeq  seq = {0x00000020 | 0x00000800, 0x00000001| 0x00000002 +...}; //要 全軸指定
+     * const float  angle[15] = {0 , 0,0 , 0,0,-130,15,0,0 , 0,0,-130,-15,0,0};
+     * const bool   rot[15]   = {0 , 1,0 , 0,1,   0, 0,0,0 , 1,1,   0,  1,0,1};
+     * CORBA::ULong &status;
+     * servoPlugin::jointCalibration(seq, angle, rot, status);
+     *      @endcode
+     * 
+     * @attention  周辺の状態に関係なく，キャリブレーション開始姿勢 @a seq に移行します。 \n
+     *             @a seq の設定には充分注意してください。
+     * @param[in]  seq 動作順序を指定します。 \n
+     *                 同時に動作させたい関節軸の組み合わせを OR演算で生成し，
+     *                 その値のリスト（@c LngLngSeq 型）を入力してください。 \n
+     *                 関節軸は各ビット毎に割り当てられています。
+     *                 - 0x00000001 : 腰   - ヨー軸
+     *                 - 0x00000002 : 首   - ヨー軸
+     *                 - 0x00000004 : 首   - ピッチ軸
+     *                 - 0x00000008 : 右腕 - 肩   - ヨー軸
+     *                 - 0x00000010 : 右腕 - 肩   - ピッチ軸
+     *                 - 0x00000020 : 右腕 - 肘   - ピッチ軸
+     *                 - 0x00000040 : 右腕 - 手首 - ヨー軸
+     *                 - 0x00000080 : 右腕 - 手首 - ピッチ軸
+     *                 - 0x00000100 : 右腕 - 手首 - ロール軸
+     *                 - 0x00000200 : 左腕 - 肩   - ヨー軸
+     *                 - 0x00000400 : 左腕 - 肩   - ピッチ軸
+     *                 - 0x00000800 : 左腕 - 肘   - ピッチ軸
+     *                 - 0x00001000 : 左腕 - 手首 - ヨー軸
+     *                 - 0x00002000 : 左腕 - 手首 - ピッチ軸
+     *                 - 0x00004000 : 左腕 - 手首 - ロール軸
+     *
+     * @param[in]  angles キャリブレーション開始時の姿勢（関節角度）を指定します。 \n
+     *                    腰・首・右腕・左腕 の順 （上記 @a seq の説明順） で，指定します。
+     *                    - この開始姿勢の角度精度には， 1 deg 程度の誤差があります。 \n
+     *                      さらに，キャリブレーションの為に各軸が 4 deg 回転しますので，
+     *                      その角度ずれ分を考慮して，開始姿勢を定義してください。
+     *
+     * @param[in]  rot    キャリブレーション中の各関節軸の回転方向を指定します。 \n
+     *                    腰・首・右腕・左腕 の順 （上記 @a seq の説明順） で，指定します。
+     *                    - true  : 正回転
+     *                    - false : 負回転
+     *
+     * @param[out] status キャリブレーションの詳細結果を返します。 
+     *                    - 0x3000     : ロボットがキャリブできない状態 \n
+     *                                   要因：サーボＯＮである。エマーボタンが押されている。一旦停止が掛かっている。
+     *                    - 0x3001     : シーケンスチェックエラー（入力したシーケンスに何も指定されていないものがある）
+     *                    - 0x3002     : シーケンスチェックエラー（入力したシーケンスに同じ軸が2回指定されている）
+     *                    - 0x3003     : シーケンスチェックエラー（入力したシーケンスで全軸を指定していない）
+     *                    - 0x3004     : シーケンスチェックエラー（入力したシーケンスで存在しない軸を指定した）
+     *                    - 0x3005     : ジョイントキャリブに入力した動作角度がソフトリミットを超える
+     *                    - 0x3006     : ジョイントキャリブでの指令値(入力値±約４度)がソフトリミットを超える
+     *                    - 0x4001～0x400F: シーケンスseq[status-0x30001] ジョイントキャリブ実施地点に移動するためのサーボONに失敗した
+     *                    - 0x5001～0x500F: シーケンスseq[status-0x40001] ジョイントキャリブ実施地点に移動中にエラーが発生した
+     *                    - 0x3007     : ジョイントキャリブ実施後、再度ジョイントキャリブを実施した
+     *                    - 0x3008     : ジョイントキャリブ中にサーボエマージェンシー状態になった
+     *                    - 0x300b     : キャリブレーションのための動作中にエラーが発生した
+     *                    - 0x300c     : キャリブレーションに失敗した
+	 *                    - 0x300d     : ジョイントキャリブ後のサーボONに失敗した
+	 *                    - 0x300e     : ジョイントキャリブ中の動作書き込み権限を取得できなかった
+     * 
+     * @retval "true  (=1)" 成功。
+     * @retval "false (=0)" 失敗。 引数不良時も @a false になります。
+     */
+    boolean jointCalibration(
+		in servoPluginTypes::LngLngSeq   seq,
+        in servoPluginTypes::FltArray15  angles,
+        in servoPluginTypes::BolArray15  rot,
+        out hiroCommonStatus::statSequence status
+    );
+
+    /*!
+	 * @ingroup servoPluginGroup_Ref
+     * @brief   サーボの ON / OFF 状態を返します。
+     *
+     * @param[out] status  詳細 （モータドライバの状態） を返します。 \n
+     *                     軸番号の順で状態値が配列に入ります。
+     *                     - status[0]  = 腰   - ヨー軸
+     *                     - status[1]  = 首   - ヨー軸
+     *                     - status[2]  = 首   - ピッチ軸
+     *                     - status[3]  = 右腕 - 肩   - ヨー軸
+     *                     - status[4]  = 右腕 - 肩   - ピッチ軸
+     *                     - status[5]  = 右腕 - 肘   - ピッチ軸
+     *                     - status[6]  = 右腕 - 手首 - ヨー軸
+     *                     - status[7]  = 右腕 - 手首 - ピッチ軸
+     *                     - status[8]  = 右腕 - 手首 - ロール軸
+     *                     - status[9]  = 左腕 - 肩   - ヨー軸
+     *                     - status[10] = 左腕 - 肩   - ピッチ軸
+     *                     - status[11] = 左腕 - 肘   - ピッチ軸
+     *                     - status[12] = 左腕 - 手首 - ヨー軸
+     *                     - status[13] = 左腕 - 手首 - ピッチ軸
+     *                     - status[14] = 左腕 - 手首 - ロール軸
+     *                     .
+     *                     各配列値の内容は下記の通りです。
+     *                     - bit  0 : [MNT] システムスタンバイモード
+     *                     - bit  1 : [MNT] サーボスタンバイモード
+     *                     - bit  2 : [MNT] サーボ ON モード
+     *                     - bit  3 : [MNT] ワーニングモード
+     *                     - bit  4 : [MNT] アラームモード
+     *                     - bit  5 : [MNT] 同期モード ON
+     *                     - bit  6 : [MNT] 非常停止ボタン解除（イネーブル ON）
+     *                     - bit  7 : [MNT] 位置決め完了
+     *                     - bit  8 : [Alarm] 位置偏差エラー
+     *                     - bit  9 : [Alarm] モータ電源過大，途絶エラー
+     *                     - bit 10 : [Alarm] 通信エラー
+     *                     - bit 11 : [Alarm] ホールセンサ，エンコーダエラー
+     *                     - bit 12 : [Alarm] 過熱エラー
+     *                     - bit 13 : [Alarm] 加速度エラー
+     *                     - bit 14 : [Alarm] 過電流エラー
+     *                     - bit 15 : [Alarm] 過負荷エラー
+     * 
+     * @retval  "true  (=1)" 全関節 サーボON。
+     * @retval  "false (=0)" 上記以外 （サーボOFFの関節がある）。
+     */
+    boolean getStatus(out servoPluginTypes::LngArray15 status);
+
+
+    /*!
+	 * @ingroup servoPluginGroup_Ref
+     * @brief   エマージェンシー状態をクリアします。
+     * 
+	 * @param   無し。
+	 * @note    サーボOFFを行ってから,実行してください。
+     * @retval  "true  (=1)" 成功。
+     * @retval  "false (=0)" 失敗(サーボON/リレーONの軸が存在している)。
+     */
+	boolean clearEmergency();
+
+
+    /*!
+	 * @ingroup servoPluginGroup_Ref
+     * @brief   キャリブ状態をチェックします。
+	 *
+	 * @param   無し。
+	 * @retval  "true  (=1)" キャリブ済み。
+	 * @retval  "false (=0)" キャリブ未実施。
+     */
+	boolean checkCalibration();
+
+};
+
+#endif
+
+//EOF

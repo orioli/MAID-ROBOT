@@ -1,0 +1,53 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      systemCommand.idl
+ * @brief     systemCommandインターフェース 定義ファイル
+ * 
+ */
+
+#ifndef SYSTEMCOMMAND_IDL
+#define SYSTEMCOMMAND_IDL
+
+/*!
+ * @brief  SP-02 専用 システムコマンドインターフェース
+ */
+interface systemCommand {
+    /*!
+     *@addtogroup  SyscomGroup_Ref  systemCommand
+     * @brief システムコマンド操作インターフェース #systemCommand
+     */
+    
+    /*!
+     * @ingroup SyscomGroup_Ref
+	 * @brief   コマンド・引数に応じた処理をロボットで行い，その結果を返します。
+	 *
+	 * @param[in]  command  コマンドを設定します。
+	 * @param[in]  argv     コマンドに対する引数を設定します。
+	 * @param[out] cout     コマンド実行による結果が返されます。
+	 * @return     無し。
+	 *
+     * @par ロボットをシャットダウンする場合:
+     *             @code
+     * function( "shutdown", "", cout );
+     *             @endcode
+     * @par ロボットのシステム時間を取得する場合:
+     *             @code
+     * function( "data", "", cout );
+     *             @endcode
+     */
+    
+    void function(in string command, in string argv, out string cout);
+    
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "47:4ef213af09ec";
+    
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "Tue Jan 27 16:40:51 2009 +0900";
+};
+
+#endif
+

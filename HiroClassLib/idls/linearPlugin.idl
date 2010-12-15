@@ -1,0 +1,76 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      linearPlugin.idl
+ * @brief     双腕ロボット用　直線・球面補間モーション生成 インターフェース 定義ファイル
+ *
+ */
+#ifndef __LINEAR_PLUGIN_IDL__
+#define __LINEAR_PLUGIN_IDL__
+
+#include "HRPcontroller.idl"
+#include "statusPlugin.idl"
+
+/*!
+ * @brief 直線・球面補間モーションを生成するインターフェース
+ */
+interface linearPlugin : OpenHRP::Plugin
+{
+	/*!
+	 * @addtogroup linearPluginGroup_Ref linearPlugin
+	 */
+
+    /*!
+	 * @ingroup linearPluginGroup_Ref
+     * @brief 直線・球面補間モーションを生成します。
+     *
+     * @param[in]    kind             動作部位＋単位系 \n
+	 *                                - (K_RARM + K_EULER  + K_MM_DEG) : 右腕 (chest, x,y,z, r,p,w) [mm, deg] \n
+	 *                                - (K_LARM + K_EULER  + K_MM_DEG) : 左腕 (chest, x,y,z, r,p,w) [mm, deg] \n
+	 *                                - (K_RARM + K_QUATER + K_MM_DEG) : 右腕 (chest, x,y,z, queternion) [mm] \n
+	 *                                - (K_LARM + K_QUATER + K_MM_DEG) : 左腕 (chest, x,y,z, queternion) [mm] \n
+	 *                                - (K_RARM + K_MATRIX + K_MM_DEG) : 右腕 (chest, x,y,z, matrix) [mm] \n
+	 *                                - (K_LARM + K_MATRIX + K_MM_DEG) : 左腕 (chest, x,y,z, matrix) [mm] \n
+	 *                                - (K_RARM + K_EULER  + K_M_RAD)  : 右腕 (chest, x,y,z, r,p,w) [m, rad] \n
+	 *                                - (K_LARM + K_EULER  + K_M_RAD)  : 左腕 (chest, x,y,z, r,p,w) [m, rad] \n
+	 *                                - (K_RARM + K_QUATER + K_M_RAD)  : 右腕 (chest, x,y,z, queternion) [m] \n
+	 *                                - (K_LARM + K_QUATER + K_M_RAD)  : 左腕 (chest, x,y,z, queternion) [m] \n
+	 *                                - (K_RARM + K_MATRIX + K_M_RAD)  : 右腕 (chest, x,y,z, matrix) [m] \n
+	 *                                - (K_LARM + K_MATRIX + K_M_RAD)  : 左腕 (chest, x,y,z, matrix) [m] \n
+	 *
+     * @param[in]    position         目標位置をロボット座標系で指定
+	 *                                単位系はkindに依存
+     * @param[in]    minimumTime      最小移動時間[sec]
+     * @param[in]    percent          最大速度に対する動作速度[%]
+     * @param[out]   status           動作開始前に発生したステータスを返します。
+     *
+     * ロボットが動作可能な最小時間＊percent と　minimumTime　とを比較して、
+	 * より長い時間で動作します。
+	 *
+	 * percent = 100 とすることで、時間指令と同等の命令になります。 \n
+	 * minimumTime = 0 とすることで、速度％指令と同等の命令になります。
+	 *
+	 * 腰軸－＞腕　の順番で動作させた時に、腰軸の動作時間を　minimumTime　に入れることで、
+	 * 腰軸動作完了まで直線補間（その場停止も可）ができます。
+	 *
+     * @return 動作時間[sec]。 \n
+	 *         エラーの場合，負値が返されます。
+	 *
+     * @par <例：腰軸が0°の状態で,(300,-400,200,0,-90,0)の位置に右手先を動かす>
+     * @code
+     * rbt.Linear.setPosition(10,(0,300,-400,200,0,-90,0),0,percent)
+     * @endcode
+     *
+     */
+    double setPosition(
+		in  statusPluginTypes::kindType     kind,
+		in  statusPluginTypes::JointValues  position,
+        in  double                          minimumTime,
+        in  double                          percent,
+        out hiroCommonStatus::statSequence  status
+    );
+};
+
+#endif
+
+//EOF
+

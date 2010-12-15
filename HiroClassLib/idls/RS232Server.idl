@@ -1,0 +1,132 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      RS232Server.idl
+ * @brief     AP-01用RS232サーバ インターフェース 定義ファイル
+ * 
+ */
+#ifndef RS232Server_IDL
+#define RS232Server_IDL
+
+/*!
+ * @brief RS232インターフェース
+ */
+interface RS232Server
+{
+    /*!
+     *@addtogroup  RS232Group_Ref  RS232Server
+     *@brief       RS232サーバ インターフェース #RS232Server
+     */
+
+    /*!
+     *@addtogroup  RS232CommandGroup_Ref  Command
+     * @ingroup    RS232Group_Ref
+     * @brief      コマンド群です。 
+     */
+
+    /*!
+     *@ingroup  RS232CommandGroup_Ref
+     * @brief   通信バッファを指定するシーケンス型です。
+     * 
+     */
+    typedef sequence<octet> OctetSeq;
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief RS232C通信を接続します。
+     * 
+     *  @param[in] PortNo	接続ポート番号。
+     *  @param[in] BaudRate	通信速度。
+     *  @param[in] Parity	パリティの種類
+     *                          - 0 : パリティなし
+     *                          - 1 : 奇数パリティ
+     *                          - 2 : 偶数パリティ
+     *  @retval         0  接続成功。
+     *  @retval        -1  接続失敗。
+     */
+    long serialConnect(in long PortNo, in long BaudRate, in long Parity);
+
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief RS232C通信を切断します。
+     * 
+     *  @retval         0  切断成功。
+     *  @retval        -1  切断失敗。
+     */
+    long serialCut();
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief データ送信します。
+     * 
+     *  @param[in] Buf	   送信データ。
+     *  @retval         0  データ送信成功。
+     *  @retval        -1  データ送信失敗。
+     */
+    long transData(in OctetSeq Buf);
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief バッファにある全データ受信します。
+     * 
+     *  @param[in] Buf         受信データ。
+     *  @retval         1以上  受信データ文字数。
+     *  @retval        -1      受信データなし。
+     *  @retval        -2      ミューテックスロック中。
+     *  @retval        -3      受信データ取得失敗。
+     */
+    long receiveData(out OctetSeq Buf);
+
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief バッファにある全データ受信します。
+     * 
+     *  @param[in]  Partition    区切り文字。
+     *  @param[in]  Buf          受信データ。
+     *  @retval         1以上    受信データ文字数。
+     *  @retval        -2        ミューテックスロック中。
+     *  @retval        -3        受信データ取得失敗。
+     */
+    long receiveDataPartition(in octet Partition, out OctetSeq Buf);
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief 引数で指定した区切り文字を受信するまで受信データを取得します。
+     * 
+     *  @param[in]  Partition    区切り文字。
+     *  @param[in]  WaiteTime    タイムアウト時間。
+     *  @param[out] Buf          受信データ。
+     *  @retval         0        受信データ取得成功。
+     *  @retval        -1        受信データなし。
+     *  @retval        -2        ミューテックスロック中。
+     *  @retval        -3        受信データ取得失敗。
+     */
+    long receiveDataParWait(in octet Partition, in long WaiteTime, out OctetSeq Buf);
+
+    /*!
+     * @ingroup     RS232CommandGroup_Ref
+     *  @brief スリープなしで区切り文字を受信するまで受信データを取得します。
+     * 
+     *  @param[in]  Partition    区切り文字。
+     *  @param[out] Buf          受信データ。
+     *  @retval         1以上    受信データ文字数。
+     *  @retval        -1        受信データなし。
+     *  @retval        -2        ミューテックスロック中。
+     *  @retval        -3        受信データ取得失敗。
+     */
+    long receiveDataParNoWait(in octet Partition, out OctetSeq Buf);
+    
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "53:f9d3c685eee1";
+    
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "Mon Apr 27 15:38:48 2009 +0900";
+};
+
+#endif
+

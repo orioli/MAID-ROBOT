@@ -1,0 +1,17 @@
+
+= vcproj の作り方 =
+ * Debug だと python25_d.lib をリンクにいくので Release を使う
+ * 各 .cpp ファイルのプロパティの C++ の「プリコンパイル済みヘッダ」を「使用しない」にする
+ * 全体もしくは _wrap.cxx の C++ プロパティの「追加のインクルードパス」に $(PYTHON_INCLUDE) もしくは相当のフルパスを入力する.
+ * 全体の「構成プロパティ」「全般」の「文字セット」を「マルチバイト」にする。
+ * リンカプロパティの「全般」「出力ファイル」を「_HiroHands.pyd)」に。
+ * リンカプロパティの「入力」「追加の依存ファイル」に $(PYTHON_LIB) もしくは相当のフルパスを入力する。
+ * HiroHands.i を追加して、カスタムビルドイベントを設定
+  * 「コマンドライン」に「 swig -python -c++ $(InputName).i」
+  * 「出力ファイル」に「$(InputName)_wrap.cxx」
+
+= emacs設定=
+ * Local Variables:
+ * mode: outline-minor
+ * outline-regexp: "^=+"
+ * End:

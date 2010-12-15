@@ -1,0 +1,327 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      dioPlugin.idl
+ * @brief     dioPluginインターフェース 定義ファイル
+ * 
+ */
+
+/*!
+ * @page WordPage 用語について
+ * <hr>
+ * @section SignalLight_Ref 表示灯
+ *     表示灯には下記 2種類があります。
+ *     - ロボット本体にある LED （胴体前背面）， ブザー （胴体内部）
+ *     - 外部シグナルタワー （DIO端子台に接続）
+ *     
+ *     @c dioPlugin::setDout() により表示状態を変更できますが，
+ *     ロボット本体のLEDおよびブザーについては，ロボットコントローラにより強制的に上書きされます。\n
+ *     外部シグナルタワーについては，仕様により動作が異なります。
+ * 
+ * <hr>
+ * @section DioPortInfo_Ref DIOポートの補足・注意事項
+ *     @par ポートマップについて：
+ *         基本的なポートマップは @ref DioConstGroup_Din_Ref, @ref DioConstGroup_Dout_Ref にあります。 \n
+ *         ご利用の際は，別途納品済みの資料を参照してください。
+ *     
+ *     @par 注意事項：
+ *         ユーザ用ポートは，全て "In" / "Out" のどちらにでも利用可能なため，以下のような注意事項があります。 \n
+ *         ご確認のうえ，ご利用ください。
+ *         
+ *         - "In" として利用されるポートに， @c dioPlugin::setDout() などで @c #dioPlugin::DO_ON 以外の値を設定した状態で
+ *           @c dioPlugin::getDin() を行うと，ポートがGNDショートされるため，"In" ポートとしては正常に機能できません。 \n
+ *           "In" として利用されるポートには，@c #dioPlugin::DO_ON 以外の値を設定しないでください。
+ *           
+ *         - センサーなどの "In" ポート用機器を接続される際には，接続先ポートの利用方法について，十分に確認してください。 \n
+ *           TTLのトーテムポール出力など，接続機器の出力回路が GNDショート を禁止している場合があります。 \n
+ *           そのような機器を接続している場合に，出力として @c #dioPlugin::DO_ON 以外の値を設定すると，
+ *           接続機器を破損させる恐れがあります。
+ */
+
+#ifndef OPENHRP_DIOPLUGIN_IDL
+#define OPENHRP_DIOPLUGIN_IDL
+
+#include "HRPcontroller.idl"
+
+/*!
+ * @brief DIOインターフェース
+ */
+interface dioPlugin : OpenHRP::Plugin
+{
+    /*!
+     *@addtogroup  DioGroup_Ref  dioPlugin
+     * @brief DIOポート操作プラグイン #dioPlugin
+     */
+    
+    /*!
+     *@addtogroup  DioFuncGroup_Ref  Functions
+     * @ingroup DioGroup_Ref
+     * @brief 各種コマンド群です。
+     */
+    
+    /*!
+     *@addtogroup  DioConstGroup_Dout_Ref  Dout Portmap
+     * @ingroup DioGroup_Ref
+     * @brief DIOポート - Dout に関する定数です。
+     */
+    
+    /*!
+     *@addtogroup  DioConstGroup_Din_Ref  Din Portmap
+     * @ingroup DioGroup_Ref
+     * @brief DIOポート - Din に関する定数です。
+     */
+    
+    /*!
+     *@addtogroup  DioConst_BlinkingCycle_Ref  Dout Setting Values
+     * @ingroup DioGroup_Ref
+     * @{
+     * @brief @c setDout() 等において，ON / OFF を設定する際に使用します。
+     * 
+     * 数値を直接入力できます。
+     *
+     * @attention
+     *     @c getDin() とはポートの論理が異なることに注意してください。
+     */
+    const unsigned long DO_OFF = 0x0;        ///< 出力 OFF（0Vdc 出力, GNDショート状態）
+    const unsigned long DO_ON  = 0xFFFFFFFF; ///< 出力 ON （5Vdc 出力，オープン状態）
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConstGroup_Dout_Ref  Dout Portmap
+     * @ingroup DioGroup_Ref
+     * @{
+     * @brief @c setDout() にて Dout を操作する際に利用可能な定数です。
+     * 
+     * 数値を直接入力できます。
+     */
+    const octet DoutPort33 = 32;    ///< Doutポートno.33
+    const octet DoutPort34 = 33;    ///< Doutポートno.34
+    const octet DoutPort35 = 34;    ///< Doutポートno.35
+    const octet DoutPort36 = 35;    ///< Doutポートno.36
+    const octet DoutPort37 = 36;    ///< Doutポートno.37
+    const octet DoutPort38 = 37;    ///< Doutポートno.38
+    const octet DoutPort39 = 38;    ///< Doutポートno.39
+    const octet DoutPort40 = 39;    ///< Doutポートno.40
+    const octet DoutPort41 = 40;    ///< Doutポートno.41
+    const octet DoutPort42 = 41;    ///< Doutポートno.42
+    const octet DoutPort43 = 42;    ///< Doutポートno.43
+    const octet DoutPort44 = 43;    ///< Doutポートno.44
+    const octet DoutPort45 = 44;    ///< Doutポートno.45
+    const octet DoutPort46 = 45;    ///< Doutポートno.46
+    const octet DoutPort47 = 46;    ///< Doutポートno.47
+    const octet DoutPort48 = 47;    ///< Doutポートno.48
+    const octet DoutPort49 = 48;    ///< Doutポートno.49
+    const octet DoutPort50 = 49;    ///< Doutポートno.50
+    const octet DoutPort51 = 50;    ///< Doutポートno.51
+    const octet DoutPort52 = 51;    ///< Doutポートno.52
+    const octet DoutPort53 = 52;    ///< Doutポートno.53
+    const octet DoutPort54 = 53;    ///< Doutポートno.54
+    const octet DoutPort55 = 54;    ///< Doutポートno.55
+    const octet DoutPort56 = 55;    ///< Doutポートno.56
+    const octet DoutPort57 = 56;    ///< Doutポートno.57
+    const octet DoutPort58 = 57;    ///< Doutポートno.58
+    const octet DoutPort59 = 58;    ///< Doutポートno.59
+    const octet DoutPort60 = 59;    ///< Doutポートno.60
+    const octet DoutPort61 = 60;    ///< Doutポートno.61
+    const octet DoutPort62 = 61;    ///< Doutポートno.62
+    const octet DoutPort63 = 62;    ///< Doutポートno.63
+    const octet DoutPort64 = 63;    ///< Doutポートno.64
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConstGroup_Din_Ref  Din Portmap
+     * @ingroup DioGroup_Ref
+     * @{
+     * @brief @c getDin() にて Din の値を判断する際に利用可能な定数です。
+     * 
+     * 数値と直接比較できます。
+     */
+    const unsigned long long DinPort33 = 0x0000000100000000; ///<Dinポートno.33
+    const unsigned long long DinPort34 = 0x0000000200000000; ///<Dinポートno.34
+    const unsigned long long DinPort35 = 0x0000000400000000; ///<Dinポートno.35
+    const unsigned long long DinPort36 = 0x0000000800000000; ///<Dinポートno.36
+    const unsigned long long DinPort37 = 0x0000001000000000; ///<Dinポートno.37
+    const unsigned long long DinPort38 = 0x0000002000000000; ///<Dinポートno.38
+    const unsigned long long DinPort39 = 0x0000004000000000; ///<Dinポートno.39
+    const unsigned long long DinPort40 = 0x0000008000000000; ///<Dinポートno.40
+    const unsigned long long DinPort41 = 0x0000010000000000; ///<Dinポートno.41
+    const unsigned long long DinPort42 = 0x0000020000000000; ///<Dinポートno.42
+    const unsigned long long DinPort43 = 0x0000040000000000; ///<Dinポートno.43
+    const unsigned long long DinPort44 = 0x0000080000000000; ///<Dinポートno.44
+    const unsigned long long DinPort45 = 0x0000100000000000; ///<Dinポートno.45
+    const unsigned long long DinPort46 = 0x0000200000000000; ///<Dinポートno.46
+    const unsigned long long DinPort47 = 0x0000400000000000; ///<Dinポートno.47
+    const unsigned long long DinPort48 = 0x0000800000000000; ///<Dinポートno.48
+    const unsigned long long DinPort49 = 0x0001000000000000; ///<Dinポートno.49
+    const unsigned long long DinPort50 = 0x0002000000000000; ///<Dinポートno.50
+    const unsigned long long DinPort51 = 0x0004000000000000; ///<Dinポートno.51
+    const unsigned long long DinPort52 = 0x0008000000000000; ///<Dinポートno.52
+    const unsigned long long DinPort53 = 0x0010000000000000; ///<Dinポートno.53
+    const unsigned long long DinPort54 = 0x0020000000000000; ///<Dinポートno.54
+    const unsigned long long DinPort55 = 0x0040000000000000; ///<Dinポートno.55
+    const unsigned long long DinPort56 = 0x0080000000000000; ///<Dinポートno.56
+    const unsigned long long DinPort57 = 0x0100000000000000; ///<Dinポートno.57
+    const unsigned long long DinPort58 = 0x0200000000000000; ///<Dinポートno.58
+    const unsigned long long DinPort59 = 0x0400000000000000; ///<Dinポートno.59
+    const unsigned long long DinPort60 = 0x0800000000000000; ///<Dinポートno.60
+    const unsigned long long DinPort61 = 0x1000000000000000; ///<Dinポートno.61
+    const unsigned long long DinPort62 = 0x2000000000000000; ///<Dinポートno.62
+    const unsigned long long DinPort63 = 0x4000000000000000; ///<Dinポートno.63
+    const unsigned long long DinPort64 = 0x8000000000000000; ///<Dinポートno.64
+    /*! @} */
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief   全ポートの Din 状態を返します。
+     * 
+     * @attention @ref DioPortInfo_Ref を参照してください。
+     * @attention @c setDout() 等の Dout を扱うコマンドとは，ポート論理が異なることに注意してください。
+     * 
+     * @param   無し。
+     * @return  DIOの状態値。 \n
+     *          本コマンドが呼び出された時点における各ポートの状態が返されます。 \n
+     *          ポートno.1 から no.64 が bit 0 から bit 63 に対応しています。 \n
+     *          \n
+     *          ビットと端子台の関係（論理）は以下の通りです。
+     *          - 0 : オープン状態
+     *          - 1 : GNDショート状態
+     */
+    unsigned long long getDin(); // 8[bytes]
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Dout設定値を返します （ポート指定）。
+     * 
+     * 指定されたポートの Dout設定値を返します。
+     *
+     * @attention @ref DioPortInfo_Ref を参照してください。
+     * 
+     * @param[in] port  取得したいポート番号を指定します。
+     * @return    指定されたポートのON / OFF / 点滅周期。 \n
+     *            @ref DioConst_BlinkingCycle_Ref に定義されている以下の定数，および点滅周期が返されます。 \n
+     *            \n
+     *            - 0x00000000 : OFF < @c #DO_OFF >
+     *            - 0xFFFFFFFF : ON  < @c #DO_ON >
+     *            - 上記以外 : 点滅 （ON / OFF 繰り返し） \n
+     *              10msec 単位で表された点滅周期が返されます （デューティ比 50\%）。\n
+     *              （例） @a 100 の場合，点滅周期 1sec \n
+     */
+    unsigned long getDout(in octet port);
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Dout設定値を返します （全ポート）。
+     * 
+     * ビット毎に全ポートのDout設定状態が返されます。
+     * 
+     * @attention @ref DioPortInfo_Ref を参照してください。
+     * 
+     * @param   無し。
+     * @return  全ポートの設定状態。 \n
+     *          ポートno.1 から no.64 が bit 0 から bit 63 に対応しています。 \n
+     *          ビットの状態は下記のように定義されています。
+     *          - 0: 出力 OFF < @c #DO_OFF > または 無効。
+     *          - 1: 出力 ON  < @c #DO_ON > または 点滅。
+     */
+    unsigned long long getDoutAll();
+
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Doutの操作を行います （ポート指定）。
+     * 
+     * 引数 @a port で指定されたポートを， @a blinkingCyle の指定値に設定します。 \n
+     * 設定値により点滅動作も可能です。
+     * 
+     * 複数ポートを同時に操作することはできません。
+     * 
+     * @par 実行例：
+     *            @code
+     * setDout( DoutPort1, DO_ON );
+     *               @endcode            
+     * 
+     * @attention @ref DioPortInfo_Ref を参照してください。
+     * 
+     * @param[in] port           操作するポート番号を指定します。
+     * @param[in] blinkingCycle  ポートの ON / OFF / 点滅 を指定します。\n
+     *                           @ref DioConst_BlinkingCycle_Ref に以下を表す定数が定義されています。\n
+     *                           \n
+     *                           - 0x00000000 : OFF < @c #DO_OFF >
+     *                           - 0xFFFFFFFF : ON  < @c #DO_ON  >
+     *                           - 上記以外 : 点滅 （ON / OFF 繰り返し） \n
+     *                             点滅周期を 10msec 単位で指定します （デューティ比 50\%）。\n
+     *                             （例） @a blinkingCycle = 100 の場合，点滅周期 1sec \n
+     * 
+     * @retval    "true  (=1)" 成功。
+     * @retval    "false (=0)" 失敗（異常発生）。\n
+     *                         port 0 等の無効ポートを操作した場合などに発生します。
+     */
+    boolean setDout(in octet port, in unsigned long blinkingCycle);
+
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Doutの操作を行います （全ポート，同時操作）。
+     * 
+     * ポートno.1 から no.64 が bit 0 から bit 63 に割り当てられています。 \n
+     * @c #DO_ON および @c #DO_OFF にするポート群ごとに，
+     * 操作ポートに対応するビットを 1 にした値（64bit）を与えることにより，
+     * 全ポートを一度に設定します。 \n
+     * このため，点滅を設定する事はできません。
+     * 
+     * @par 実行例：
+     *             DoutPort37・DoutPort38 ON ， DoutPort43・DoutPort44 OFFの場合。 \n
+     *             @code
+     * setDoutAll( (1 << DoutPort37) | (1 << DoutPort38) ,
+     *             (1 << DoutPort43) | (1 << DoutPort44)  );
+     *             @endcode
+     * @note       @a on_ports と @a off_ports の両方に同一ポートを指定した場合は，
+     *             戻り値 false を返し，Doutの操作を行いません。
+     * 
+     * @attention @ref DioPortInfo_Ref を参照してください。
+     * 
+     * @param[in]  on_ports   0xFFFFFFFF < @c #DO_ON  > を設定するポート群（64bit）。
+     * @param[in]  off_ports  0x00000000 < @c #DO_OFF > を設定するポート群（64bit）。
+     * @retval     "true  (=1)"  成功。
+     * @retval     "false (=0)"  失敗（異常発生）。 下記条件で発生します。
+     *                           - @a on , @a off で同一ポートが指定された。
+     *                           - 無効(予約済み）ポートが指定された。
+     */
+    boolean setDoutAll(in unsigned long long on_ports, in unsigned long long off_ports);
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  ロボットコントローラ内 IDLファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba5"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:42:50 2008 +0900"
+     * @return     無し。
+     */
+    void getIDLVersionString(out string revision, out string date);
+
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  ロボットコントローラ内 ソースファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba6"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:52:50 2008 +0900"
+     * @return     無し。
+     */
+    void getSrcVersionString(out string revision, out string date);
+    
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "50:405874bb37de";
+    
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "Wed Jan 28 16:13:50 2009 +0900";
+};
+
+#endif
+

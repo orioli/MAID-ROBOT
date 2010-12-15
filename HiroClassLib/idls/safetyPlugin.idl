@@ -1,0 +1,98 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      safetyPlugin.idl
+ * @brief     safePluginインターフェース 定義ファイル
+ * 
+ */
+
+#ifndef OPENHRP_SAFETYPLUGIN_IDL
+#define OPENHRP_SAFETYPLUGIN_IDL
+
+#include "HRPcontroller.idl"
+
+/*!
+ * @brief safetyPluginインターフェース
+ */
+interface safetyPlugin : OpenHRP::Plugin
+{
+    /*!
+     *
+     */
+    enum safetyModuleState {
+    UnknownState, 
+    WakeUp, ActiveOperation, ProtectiveStop, eMergencyStop, ErrorState
+    };
+
+    /*!
+     * @brief 自動の動作を指定します。\n 誤設定防止の為、ロボット起動後
+     *         １回のみ設定できます。\n １度変更した設定を再変更したい
+     *         場合には、ロボットの再起動が必要です。
+     * 
+     * @param[in] relock ユーザプログラムにより、ロックが解除された時に、
+     *                    \n ポートの状態に応じて再ロックを掛けるかどう
+     *                    かを設定します。\n デフォルトはtrueです。\n
+     *                    - true : 再ロックを行う。\n - false : 再ロッ
+     *                    クを行わない。\n
+     * 
+     * @param[in] unLockTime 自動復帰の時間を指定します。\n ポートの状
+     *                         態が設定時間以上アンロック状態である時に
+     *                         ロックを解除します。\n 単位は５ｍｓです。
+     *                         \n マイナス値を入れると、自動復帰は無効
+     *                         になります。デフォルトは４００（２秒）で
+     *                         す。\n チャタリングを防ぐ効果もある為、
+     *                         ２０（１００ｍ秒）以上の値にすることを推
+     *                         奨します。\n
+     * 
+     * @return    -1     : 異常
+     * @return    -1以外 : 正常\n
+     *                     時間を基にしたシリアル値を返します。
+     */
+    long setAutoSetting(in boolean reLock, in long unLockTime);
+
+
+    /*!
+     * @brief 自動の動作の指定値を返します。\n
+     * 
+     * @param[in] relock  再ロック動作 #setAutoSetting() と同意。
+     * 
+v     * @param[in] unLockTime   自動復帰時間 #setAutoSetting() と同意。
+     * 
+     * @return -1 : 未設定@return -1以外 : 既設定\n 時間を基にしたシリ
+     * アル値を返します。 #setAutoSetting() と同意。\n この値を取得する
+     * ことにより、いつ設定されたものかが明確になる為、\n ロボットが再
+     * 起動されたかどうか、分かり、設定値の不変をチェックすることが出来
+     * ます。
+     */
+    long getAutoSetting(out boolean reLock, out long unLockTime);
+    
+    safetyModuleState transitionP2M();
+    safetyModuleState transitionM2P();
+    safetyModuleState transitionP2A();
+    safetyModuleState transitionA2P();
+    safetyModuleState transitionA2M();
+    safetyModuleState transition2E();
+    safetyModuleState transitionE2W();
+
+    safetyModuleState queryState();
+
+    unsigned long queryWatchDogUpdate();
+
+    long setValue(in short id, in long value);
+    long getValue(in short id, out long value);
+
+    unsigned long long getShmFrameNumber();
+    unsigned long long getDi();
+    
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "37:238f668b1631";
+
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "Sat Jan 24 22:38:22 2009 +0900";
+
+};
+#endif
+

@@ -1,0 +1,1192 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      coordServer.idl
+ * @brief     双腕ロボット用　座標変換サーバ インターフェース 定義ファイル
+ * 
+ */
+#ifndef COORD_SERVER_IDL
+#define COORD_SERVER_IDL
+/*!
+ * @brief 座標変換サーバ インターフェース
+ */
+interface coordServer
+{
+    /*!
+     *@addtogroup  coordServerGroup_Ref  coordServer
+     *@brief 座標変換サーバ #coordServer
+     */
+   
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // Type Definitions
+    //
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     *@addtogroup  coordServer_TypeRef  Type Definitions
+     * @{
+     * @brief   各箇所で使用する型宣言です。
+     */
+
+
+    /*!
+     *@ingroup     CoordCommonGroup_Ref
+     *@addtogroup  CoordConst_CoordPartRef  Coord System name
+     * @{
+     * @brief      予約座標系の名前です。
+     * 
+     */
+	const octet WorldCS		= 0x00; ///< ロボット座標系
+	const octet FrontCS		= 0x01; ///< 正面座標系
+	const octet RWristCS		= 0x02; ///< 右ハンド取り付け面座標系
+	const octet LWristCS		= 0x03; ///< 左ハンド取り付け面座標系
+	const octet NeckCS		= 0x04; ///< 首軸座標系
+
+	const octet RHand0 = 0x10;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand1 = 0x11;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand2 = 0x12;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand3 = 0x13;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand4 = 0x14;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand5 = 0x15;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand6 = 0x16;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet RHand7 = 0x17;      ///< 右腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+
+	const octet LHand0 = 0x18;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand1 = 0x19;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand2 = 0x1a;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand3 = 0x1b;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand4 = 0x1c;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand5 = 0x1d;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand6 = 0x1e;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+	const octet LHand7 = 0x1f;      ///< 左腕把持位置・ハンドアイ・焦点位置・ハンド位置認識マークなど
+
+	const octet NeckCam0 = 0x20;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam1 = 0x21;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam2 = 0x22;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam3 = 0x23;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam4 = 0x24;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam5 = 0x25;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam6 = 0x26;    ///< デフォルトの視線位置・方向設定
+	const octet NeckCam7 = 0x27;    ///< デフォルトの視線位置・方向設定
+
+	const octet ChestCam0 = 0x28;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam1 = 0x29;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam2 = 0x2a;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam3 = 0x2b;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam4 = 0x2c;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam5 = 0x2d;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam6 = 0x2e;   ///< デフォルトの視線位置・方向設定
+	const octet ChestCam7 = 0x2f;   ///< デフォルトの視線位置・方向設定
+    /*! @} */
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for inMotion/loadTrajectory
+    //
+    
+    /*!
+     *@ingroup     CoordCommonGroup_Ref
+     *@addtogroup  CoordConst_inMotionRef  Motion Const. values
+     * @{
+     * @if ALL
+     *   @brief  @c inMotion(), @c loadTrajectory() にて，部位を指定する際に使用します。
+     *   
+     *   @_080405 loadtrajectory() が有効になるまで非表示。
+     * @endif
+     * @brief  @c inMotion() にて，部位を指定する際に使用します。
+     * 
+     * 数値を直接入力できます。
+     */
+    const octet NECK      = 0x01; ///< 首軸
+    const octet CHEST     = 0x02; ///< 腰軸
+    const octet RIGHT_ARM = 0x04; ///< 右腕
+    const octet LEFT_ARM  = 0x08; ///< 左腕
+    /*! @} */
+    
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for getStatus/command-status
+    //
+    
+    /*!
+     *@ingroup     CoordCommonGroup_Ref
+     *@addtogroup  CoordConst_getStatusRef  Status Infomations
+     * @{
+     * @brief      @c getStatus() および各コマンドの引数・戻り値の判断に使用します。
+     * 
+     * 状態は数値で得られるため，判断処理の実装をわかりやすくするために用意しています。 \n
+     * 数値と直接比較・判断できます。
+     */
+    
+    /*!
+     * プラグイン初期化中。 \n
+     * @c getStatus() の戻り値が 0 になるまでお待ちください。 \n
+     * 通常は，CORBA接続可能になってから 100msec以内に，本フラグはOFFになります。
+     */
+    const unsigned long InitializationStage       = 0x00000001;
+    
+    /*!
+     * Busyエラー。 \n
+     * 下記の場合に発生します。
+     * - 動作指令を行なった部位が，既に動作中の場合。
+     * - 手先オフセット値を変更しようとした部位が，既に動作中の場合。
+     *   @if ALL
+     * - スプライン補間パスを追加しようとした部位が，既に@ref SplineContRef 指令直後のパス計算処理中の場合。
+     *   @endif
+     * 
+     * このエラーが発生した場合，動作は開始されません。
+     */
+    const unsigned long BusyError                 = 0x00000002;
+    
+    /*!
+     * 速度不良エラー。 \n
+     * 下記の場合に発生します。
+     * - 速度パーセントに， 1% 未満 ，または 100% より大きな値を指定した場合。
+     * 
+     * このエラーが発生した場合，動作は開始されません。
+     */
+    const unsigned long SpeedSpecifyError         = 0x00000004;
+    
+    /*!
+     * 速度オーバー警告。 \n
+     * 時間指定の各動作コマンドにおいて，最大動作速度を越える時間を指定した場合に発生します。 \n
+     * その場合，指定部位は最大速度で動作します。
+     * 
+     * パーセント指定の場合は，@c #SpeedSpecifyError が発生します。 \n
+     * @if ALL
+     * @ref SplineContRef の場合は，この警告の代わりに @c #SplineCalculationError が発生します。
+     * @endif
+     * 
+     * * 現在，時間指定の動作コマンドが存在しないため，本ワーニングは発生しません。
+     */
+    const unsigned long SpeedChangedWarning       = 0x00000008;
+    
+    /*!
+     * 補間計算部初期化エラー。 \n
+     * #armServer が有効になった直後に動作コマンドが送られた時，発生する場合があります。 \n
+     * このエラーが発生した場合は，1sec ほど待ってからコマンドを再実行してください。
+     */
+    const unsigned long InterpolatorInitError     = 0x00000010;
+    
+    /// @cond ALL
+    /*!
+     * @ref SplineContRef パス長オーバー。 \n
+     * スプライン補間のパス長が長すぎる場合に発生します。 \n
+     * 左右腕のそれぞれにおいて，最大パス長（設定可能な地点数）は 10地点 です。 \n
+     * （注） 開始点を含めると 11地点となります。
+     */
+    const unsigned long SplinePathLengthTooLong   = 0x00000020;
+    
+    /*!
+     * @ref SplineContRef 速度オーバーエラー。\n
+     * スプライン補間において，最大動作速度を越える値を指定した場合に発生します。
+     * 
+     * @ref SeparateInterpolationRef, @ref StraightInterpolationRef のコマンドでは，
+     * このエラーは発生せず，@c #SpeedChangedWarning が発生します。
+     * 
+     * このエラーが発生した場合，動作は開始されません。
+     */
+    const unsigned long SplineCalculationError    = 0x00000040;
+    /// @endcond
+    
+    /*!
+     * 右腕 IKエラー。 \n
+     * 右腕の IK（逆運動学）が解けません。目標座標・姿勢を変更してください。
+     */
+    const unsigned long IKErrorRight              = 0x00000100;
+    
+    /*!
+     * 右手首 位置異常。 \n
+     * 事前に設定された領域（胴体前面の楕円および下面，ユーザによる変更不可）に，
+     * 手首ロール軸（ハンド取付面）を移動しようとしたときに発生します。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long WristCollisionErrorRight  = 0x00000200;
+    
+    /*!
+     * 左腕 IKエラー。 \n
+     * 左腕の IK（逆運動学）が解けません。目標座標・姿勢を変更してください。
+     */
+    const unsigned long IKErrorLeft               = 0x00000400;
+    
+    /*!
+     * 左手首 位置異常。 \n
+     * 事前に設定された領域（胴体前面の楕円および下面，ユーザによる変更不可）に，
+     * 手首ロール軸（ハンド取付面）を移動しようとしたときに発生します。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long WristCollisionErrorLeft   = 0x00000800;
+
+    /*!
+     * 把持位置（ツメ先）異常。 \n
+     * 把持位置が異常です。 \n
+     * 事前に設定された領域（胴体前面の楕円および下面，ユーザによる変更不可）に，
+     * ツメ先を移動しようとしたときに発生します。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long EndPointCollisionError    = 0x00001000;
+    
+    /*!
+     * 右腕関節角度リミットオーバー。 \n
+     * 右腕の関節が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorRight = 0x00002000;
+    
+    /*!
+     * 左腕関節角度リミットオーバー。 \n
+     * 左腕の関節が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorLeft  = 0x00004000;
+    
+    /*!
+     * 腰関節角度リミットオーバー。 \n
+     * 腰軸が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorChest = 0x00008000;
+    
+    /*!
+     * 首関節角度リミットオーバー。 \n
+     * 首軸が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorNeck  = 0x00010000;
+    
+    /// @cond ALL
+    /*!
+     * 両腕協調動作エラー。 \n
+     * @c syncTargetRelativeP() において，協調動作が失敗した場合に発生します。
+     */
+    const unsigned long WristSynchronizationError = 0x00020000;
+    
+    /*!
+     * 補間時間超過。 \n
+     * 最大補間時間を超過する速度パーセントが入力された場合に発生します。
+     * - 最大補間時間（ロボット内部の固定値） = 30 sec
+     * 
+     * 動作時間がこの値より長くなるような速度パーセントを指定すると，ロボットは動作しません。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long MaxInterpolationTimeExceeded = 0x00040000;
+    /// @endcond
+
+    /*!
+     * 回転行列 破損（非正規化）。 \n
+     * 行列指定の動作コマンドにおいて，回転行列が正規化されていない場合に発生します。 \n
+     * 倍精度型レベルの正規化を行ってください。
+     */
+    const unsigned long RotationMatrixError = 0x00080000;
+    
+    /*!
+     * 一旦停止中。 \n
+     * 下記の場合に発生します。
+     * - @c protectiveStop()． を明示的に実行した。
+     * - IKエラー（@c #IKErrorRight, @c #IKErrorLeft）が発生した。
+     * 
+     * 一旦停止状態を解除する場合は，@c exitProtectiveStop()を行なってください。
+     * 
+     * このエラーおよび @c #ServoEmergency のみ，状態取得方法に関わらず，現在の状況が反映されます
+     * （下記方法の全てでセットされます）。
+     * - @c getStatus()
+     * - 動作コマンドのout型引数 @a status
+     */
+    const unsigned long ProtectiveStopState = 0x00800000;
+    
+    /*!
+     * サーボ異常。 \n
+     * サーボループにおいて，目標位置と現在値が 10°以上ずれるなどにより発生します
+     * （非常停止スイッチを押した場合など）。
+     * 
+     * このエラーを解除する場合は，@c #switchServo( @a false ) を行なってください。
+     * 
+     * このエラーおよび @c #ProtectiveStopState のみ，状態取得方法に関わらず，現在の状況が反映されます
+     * （下記方法の全てでセットされます）。
+     * - @c getStatus()
+     * - 動作コマンドのout型引数 @a status
+     */
+    const unsigned long ServoEmergency = 0x01000000;
+    
+    /*!
+     * 右腕動作中断。 \n
+     * 一旦停止により右腕の動作を中断した場合に発生します。
+     * 
+     * 右腕に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedRightArm = 0x10000000;
+    
+    /*!
+     * 左腕動作中断。 \n
+     * 一旦停止により左腕の動作を中断した場合に発生します。
+     * 
+     * 左腕に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedLeftArm  = 0x20000000;
+    
+    /*!
+     * 首動作中断。 \n
+     * 一旦停止により首の動作を中断した場合に発生します。
+     * 
+     * 首に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedNeck     = 0x40000000;
+    
+    /*!
+     * 腰動作中断。 \n
+     * 一旦停止により腰の動作を中断した場合に発生します。
+     * 
+     * 腰に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedChest    = 0x80000000;
+    
+    /*! @} */
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for Joint Calibration
+    //
+    
+    /*!
+     *@ingroup     CoordCommonGroup_Ref
+     *@addtogroup  CoordConst_JointPartRef  Joint Part name
+     * @{
+     * @brief      @c jointCalibration() にて，関節を指定する際に使用します。
+     * 
+     * 数値を直接入力できます。
+     * 
+     * 関節の位置については， @ref JointNameRef を参照してください。 
+     */
+    const long long JointCY  = 0x00000001; ///< 腰   - ヨー軸
+    const long long JointNY  = 0x00000002; ///< 首   - ヨー軸
+    const long long JointNP  = 0x00000004; ///< 首   - ピッチ軸
+    const long long JointRSY = 0x00000008; ///< 右腕 - 肩   - ヨー軸
+    const long long JointRSP = 0x00000010; ///< 右腕 - 肩   - ピッチ軸
+    const long long JointREP = 0x00000020; ///< 右腕 - 肘   - ピッチ軸
+    const long long JointRWY = 0x00000040; ///< 右腕 - 手首 - ヨー軸
+    const long long JointRWP = 0x00000080; ///< 右腕 - 手首 - ピッチ軸
+    const long long JointRWR = 0x00000100; ///< 右腕 - 手首 - ロール軸
+    const long long JointLSY = 0x00000200; ///< 左腕 - 肩   - ヨー軸
+    const long long JointLSP = 0x00000400; ///< 左腕 - 肩   - ピッチ軸
+    const long long JointLEP = 0x00000800; ///< 左腕 - 肘   - ピッチ軸
+    const long long JointLWY = 0x00001000; ///< 左腕 - 手首 - ヨー軸
+    const long long JointLWP = 0x00002000; ///< 左腕 - 手首 - ピッチ軸
+    const long long JointLWR = 0x00004000; ///< 左腕 - 手首 - ロール軸
+    /*! @} */
+
+
+
+
+
+    /*!
+     * @brief   ジョイントキャリブレーションの動作順序を指定するシーケンス型です。
+     * 
+     * @c jointCalibration() において使用します。
+     */
+    typedef sequence<long long> LngLngSeq;
+    
+    /*!
+     * @brief   ジョイントキャリブレーションの開始時姿勢（関節角度）を指定する配列です。
+     * 
+     * @c jointCalibration() において使用します。
+     */
+    typedef float   FltArray15[15];
+    
+    /*!
+     * @brief   ジョイントキャリブレーション中の各関節軸の回転方向を指定する配列です。
+     * 
+     * @c jointCalibration() において使用します。
+     */
+    typedef boolean BolArray15[15];
+    
+    /*!
+     * @brief   サーボ状態の詳細を取得するための配列です。
+     * 
+     * @c getServoStatus() において使用します。
+     */
+    typedef long long LngArray15[15];
+
+    /*!
+     * @brief   一旦停止の部位を指定する配列です。
+     *
+     * 以下のように部位が割り当てられています。
+     * @code
+     * ( 腰 , 首 , 右腕 , 左腕 )
+     * @endcode
+     *
+     * @c protectiveStop()，@c exitProtectiveStop() において使用します。
+     */
+    typedef long LngArray4[4];
+    
+    /*!
+     * @brief 位置・姿勢を表す配列です。
+     * 
+     * @param [0-2]    位置[mm]
+     * @param [3-5]    x(roll) -> y(pitch) -> z(yaw) の順番で回転した時の姿勢角[deg]
+     * 
+     */
+    typedef double DoubleArray6[6];
+
+    /*!
+     * @brief 位置・姿勢を入力する場合に使用します。
+     */
+    typedef DoubleArray6 Position;
+    /*!
+     * @brief 関節角度を入力する場合に使用します。
+     */
+    typedef sequence<double> JointAngles;
+
+	/*!
+     * @brief 座標系の入力をする場合に使用します。
+     */
+    typedef sequence<unsigned short>	cs_Nums;
+
+    /*!
+     * @brief 目標位置を入力する場合に使用します。
+     */
+    typedef sequence<DoubleArray6> CoordSequence;
+
+    /*!    @}    */
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 座標系を設定します。
+     * 
+     * @param[in]  cs_no        設定する番号
+     * @param[in]  cs_name      座標系の名前 \n
+     *                          ユーザ定義領域では自由に名前を付けられます。
+     * @param[in]  base_cs_no   元となる座標系の番号
+     * @param[in]  cs_position  @a base_cs_no 座標系に対する位置・姿勢の変化量
+     * @param[in]  pass_no      パスナンバー
+     * 
+     * @retval "true"           設定成功
+     * @retval "false"          設定失敗     \n
+     *                            失敗要因：
+     *                                    - システム定義領域の座標系に対して変更を加えようとした。
+     *                                    - パスナンバーが設定値と異なる。
+     *                                    - 座標系の階層が５段を超えた。
+     */
+    boolean setCS(
+        in octet            cs_no,
+        in string            cs_name,
+        in octet            base_cs_no,
+        in Position            cs_position,
+        in unsigned long    pass_no
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 座標系を取得します。
+     * 
+     * @param[in]  cs_no        取得する番号
+     * @param[out] cs_name      座標系の名前
+     * @param[out] base_cs_no   元となる座標系の番号
+     * @param[out] cs_position  @a base_cs_no 座標系に対する位置・姿勢の変化量
+     * @param[out] pass_no      設定されているパスナンバー
+     * @return     無し。
+     */
+     void getCS(
+        in octet                cs_no,
+        out string              cs_name,
+        out octet               base_cs_no,
+        out Position            cs_position,
+        out unsigned long       pass_no
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 座標系を削除します。
+     * 
+     * @param[in]  cs_no      削除する番号
+     * @param[in]  pass_no    パスナンバー
+     * 
+     * @retval "true"           設定成功
+     * @retval "false"          設定失敗  \n
+     *                            失敗要因：\n      
+     *                                \arg\c システム定義領域の座標系に対して変更を加えようとした。
+     *                                \arg\c パスナンバーが設定値と異なる。
+     *                                \arg\c 依存元になっている座標系を削除しようとした。
+     */
+    boolean delCS(
+        in octet            cs_no,
+        in unsigned long    pass_no
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief パスナンバーを設定します。
+     * 
+     * @param[in]  cs_no         設定する座標系番号
+     * @param[in]  old_pass_no   現在のパスナンバー
+     * @param[in]  new_pass_no   設定するパスナンバー
+     * @retval "true"            設定成功
+     * @retval "false"           設定失敗  \n
+     *                             失敗要因：\n    
+     *                                    \arg\c システム定義領域の座標系に対して変更を加えようとした。
+     *                                    \arg\c パスナンバーが設定値と異なる。
+     */
+    boolean setPassNo(
+        in octet            cs_no,
+        in unsigned long    old_pass_no,
+        in unsigned long    new_pass_no
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 各座標系基準でモーションを生成します。
+     *
+     * ”move_cs_no"が"RWristCS","LWristCS"を親に持つとき，"base_cs_no”座標系上の”pos”と”move_cs_no”が一致するように
+     * ”move_cs_no”を動作します。\n
+     //* ”move_cs_no"が"FrontCS","NeckCS"を親に持つとき，"base_cs_no”座標系上の”pos”の位置にX軸を向けるように動作します。
+     * 
+     * @param[in]  kind          補間法の種類        
+     *                             - 0: 角度補間
+     *                             - 1: 直線・球面補間
+     * @param[in]  base_cs_no    動作の元となる座標系
+     * @param[in]  pos           base_cs_noからの位置・姿勢の変化量
+     * @param[in]  move_cs_no    base_cs_no+posと一致させる座標系
+     *                           腰軸座標系・首座標系・右手首座標系・左手首座標系の何れかをベースに持つ座標系でなければならない。
+     * @param[in]  percent       動作の速度パーセント [%]
+     * @param[out] status        動作セット時のエラーステータス
+     * @return                   動作時間[sec] \n
+     *                           何らかのエラーにより動作コマンド不成立時には負の値を返します。
+     * @par <例：(0,300,0)の方向にロボットを向ける>
+     * @code
+     * rbt.Coord.moveTarget(0,WorldCS,(0,300,0,0,0,0),FrontCS,percent)
+     * @endcode
+     *
+     * @par <例：(300,200,300)の位置に頭部カメラの視線を向ける>
+     * @code
+     * cameraOffset = (60,0,60,0,45,0) # 首軸中心から見たカメラの位置・姿勢
+     * rbt.Coord.setCS(NeckCam0,'Head Camera',NeckCS,cameraOffset,0)
+     * rbt.Coord.moveTarget(0,WorldCS,(300,200,300,0,0,0),NeckCam0,percent)
+     * @endcode
+     *
+     * @par <例：(300,-400,200,0,-90,0)の位置に右手先を動かす>
+     * @code
+     * rbt.Coord.moveTarget(0,WorldCS,(300,-400,200,0,-90,0),RWristCS,percent)
+     * @endcode
+     *
+     * @par <例：(300,400,200,0,-90,0)の位置に左手先を動かす>
+     * @code
+     * rbt.Coord.moveTarget(0,WorldCS,(300,400,200,0,-90,0),LWristCS,percent)
+     * @endcode
+     *
+     * @par <例：右手先を手先座標系でx方向に+100mm相対移動させる>
+     * @code
+     * rbt.Coord.moveTarget(0,RWristCS,(100,0,0,0,0,0),RWristCS,percent)
+     * @endcode
+     *
+     * @par <例：左手先を手先座標系でx方向に+100mm相対移動させる>
+     * @code
+     * rbt.Coord.moveTarget(0,LWristCS,(100,0,0,0,0,0),LWristCS,percent)
+     * @endcode
+     * 
+     */
+    double moveTarget(
+        in octet            kind,
+        in octet            base_cs_no,
+        in Position         pos,
+        in octet            move_cs_no,
+        in double           percent,
+        out unsigned long   status
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 各座標系基準でスプライン補間モーションを生成します。
+     *
+     * ”move_cs_no"が"RWristCS","LWristCS"を親に持つとき，"csnums"の各座標系上における"coord_sequence"の要素と”move_cs_no”が一致するように
+     * ”move_cs_no”を動作します。\n
+	 * @if ALL
+     * ”move_cs_no"が"FrontCS","NeckCS"を親に持つとき，"csnums"の各座標系上における"coord_sequence"の要素の位置にX軸を向けるように動作します。(未実装)
+     * @endif 
+	 *
+     * @param[in]  csnums			座標系群
+     * @param[in]  coord_sequence	目標位置群 *回転表現／単位系 はその目標位置に対応した座標系に依存します。
+     * @param[in]  move_cs_no		coord_sequenceと一致させる座標系 \n
+     *								右手首座標系・左手首座標系の何れかをベースに持つ座標系でなければなりません。
+     * @param[in]  percent			動作の速度パーセント [%]
+     * @param[out] status			動作セット時のエラーステータス
+     * @return						動作時間[sec] \n
+     *								何らかのエラーにより動作コマンド不成立時には負の値を返します。
+	 *    
+	 * @note						csnumsの個数が目標位置群の個数と一致していないと基本的に動作しません。 \n
+	 *								但し，csnumsの個数が1個の時, その入力された1個の座標系に基づいて全ての目標位置群を動作させます。 \n
+	 *								また，csnumsの個数が0個の時, WorldCS座標系に基づいて全ての目標位置群を動作させます。 \n
+	 *
+     * @par <例：WorldCSで(300,-400,200,0,-90,0),FrontCSで(200,-400,200,0,-90,0),WorldCSで(200,-300,200,0,-90,0)の位置に右手先を動かす>
+     * @code
+	 * rbt.Coord.movePatern((WorldCS,FrontCS,WorldCS),((300,-400,200,0,-90,0),(200,-400,200,0,-90,0),(200,-300,200,0,-90,0)),RWristCS,percent)
+     * @endcode
+     *
+     * @par <例：全てFrontCSで(300,-400,200,0,-90,0),(200,-400,200,0,-90,0),(200,-300,200,0,-90,0)の位置に右手先を動かす>
+     * @code
+	 * rbt.Coord.movePatern((FrontCS),((300,-400,200,0,-90,0),(200,-400,200,0,-90,0),(200,-300,200,0,-90,0)),RWristCS,percent)
+     * @endcode
+     *
+     * @par <例：全てWorldCSで(300,-400,200,0,-90,0),(200,-400,200,0,-90,0),(200,-300,200,0,-90,0)の位置に右手先を動かす>
+     * @code
+	 * rbt.Coord.movePatern((),((300,-400,200,0,-90,0),(200,-400,200,0,-90,0),(200,-300,200,0,-90,0)),RWristCS,percent)
+     * @endcode
+	 *
+     */
+    double movePatern(
+		in cs_Nums			csnums,
+		in CoordSequence	coord_sequence,
+        in octet		    move_cs_no,
+        in double			percent,
+        out unsigned long	status
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 各座標系に対する現在位置・姿勢を取得します。
+     *
+     * ”target_cs_no”座標系から見た”base_cs_no”座標系上の"offset_pos"の位置・姿勢を返します。
+     * 
+     * @param[in]  base_cs_no     元となる座標系
+     * @param[in]  offset_pos      "base_cs_no"からの位置
+     * @param[in]  target_cs_no   取得したい座標系
+     * @param[in]  kind           取得したい状態を指定する。
+     *                            - ０：コマンドが呼ばれた瞬間のロボット指令値の手先位置・姿勢
+     *                            - １：コマンドが呼ばれた瞬間の実ロボットの手先位置・姿勢
+     * @param[out] pos            現在の位置と姿勢
+     * @return     無し。
+     */
+    void getTarget(
+        in octet        base_cs_no,
+        in Position        offset_pos,
+        in octet        target_cs_no,
+        in octet        kind,
+        out Position    pos
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 各部位毎に関節角度を指定して動作させます。
+     * 
+     * @param[in]  part          動作させたい部位。  \n
+     *                           複数部位をまとめて指定することは出来ません。
+     *                           \n
+     *                           部位は下記のようになります（@ref CoordConst_inMotionRef "部位指定用定数" の内容と同一）。
+     *                           - 0x01 : 首
+     *                           - 0x02 : 腰
+     *                           - 0x04 : 右腕
+     *                           - 0x08 : 左腕
+     * @param[in]  joint_angles  目標角度列。
+     *                           必要個数は以下の通りです。
+     *                           - 腰　　１個 ( CY )
+     *                           - 首　　２個 (NY , NP)
+     *                           - 右腕　６個 ( RSY, RSP, REP, RWY , RWP, RWR )
+     *                           - 左腕　６個 ( LSY, LSP, LEP, LWY , LWP, LWR )
+     * @param[in]  percent       動作の速度パーセント[%]
+     * @param[out] status        動作セット時のエラーステータス
+     * @return                   動作時間[sec]。
+     *                           何らかのエラーにより動作コマンド不成立時には負の値を返します。
+     *
+     *
+     * @par <例：首軸を15度，15度の角度に回転させる>
+     * @code
+     * rbt.Coord.setJointAngles(NECK,(15,15),percent)
+     * @endcode
+     
+     * @par <例：腰を45度の角度に回転させる>
+     * @code
+     * rbt.Coord.setJointAngles(CHEST,(45,),percent)
+     * @endcode
+     *
+     * @par <例：右腕の各軸を(-45,15,-150,15,15,0)の角度に回転させる>
+     * @code
+     * rbt.Coord.setJointAngles(RIGHT_ARM,(-45,15,-150,15,15,0),percent)
+     * @endcode
+     *
+     * @par <例：左腕の各軸を(-10,0,-135,-20,15,0)の角度に回転させる>
+     * @code
+     * rbt.Coord.setJointAngles(LEFT_ARM,(-10,0,-135,-20,15,0),percent)
+     * @endcode
+     */
+    double setJointAngles(
+        in octet             part,
+        in JointAngles       joint_angles,
+        in double            percent,
+        out unsigned long    status
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief 各部位毎に関節角度を取得します。
+     * 
+     * @param[in]  part          取得したい部位。  \n
+     *                           複数部位をまとめて指定することは出来ません。
+     *                           \n
+     *                           部位は下記のようになります（@ref CoordConst_inMotionRef "部位指定用定数" の内容と同一）。
+     *                           - 0x01 : 首
+     *                           - 0x02 : 腰
+     *                           - 0x04 : 右腕
+     *                           - 0x08 : 左腕
+     * @param[in]  kind          取得したい状態を指定する。
+     *                               - ０：角度指令値
+     *                               - １：エンコーダ値
+     *                               - ２：最終的な目標角度
+     * @param[out] joint_angles  取得した値[deg]が代入される。
+     * @return     無し。
+     */
+    void getJointAngles(
+        in octet            part,
+        in octet            kind,
+        out JointAngles     joint_angles
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief   ロボットの状態を返します。
+     * 
+     * 運動中も実行できます。 \n
+     * ステータスを代入後，ただちに制御を返します。
+     * 
+     * ステータスは一部を除き，前回このコマンドが呼ばれてから現在までの積算値になります。 \n
+     * コマンドが呼ばれると，下記6点を除き，積算されていたステータスはクリアされます。
+     * - @c #ProtectiveStopState
+     * - @c #ServoEmergency
+     * - @c #InterruptedRightArm
+     * - @c #InterruptedLeftArm
+     * - @c #InterruptedNeck
+     * - @c #InterruptedChest
+     * 
+     * 下記に記載した戻り値は， @ref CoordConst_getStatusRef "状態判定用定数" にも定義されています。
+     * @note    運動中かどうかを取得するときは，@c inMotion() を使用してください。
+     * 
+     * @param   無し。
+     * @retval  0x00000000  エラー・状態変化無し。 \n
+     *                      \n
+     * @retval  0x00000001  @copydoc InitializationStage \n
+     *                      <@c #InitializationStage> \n
+     *                      \n
+     * @retval  0x00000002  @copydoc BusyError \n
+     *                      <@c #BusyError> \n
+     *                      \n
+     * @retval  0x00000004  @copydoc SpeedSpecifyError \n
+     *                      <@c #SpeedSpecifyError> \n
+     *                      \n
+     * @retval  0x00000010  @copydoc InterpolatorInitError \n
+     *                      <@c #InterpolatorInitError> \n
+     *                      \n
+     * @retval  0x00000100  @copydoc IKErrorRight \n
+     *                      <@c #IKErrorRight> \n
+     *                      \n
+     * @retval  0x00000400  @copydoc IKErrorLeft \n
+     *                      <@c #IKErrorLeft> \n
+     *                      \n
+     * @retval  0x00002000  @copydoc JointAngleLimitErrorRight \n
+     *                      <@c #JointAngleLimitErrorRight> \n
+     *                      \n
+     * @retval  0x00004000  @copydoc JointAngleLimitErrorLeft \n
+     *                      <@c #JointAngleLimitErrorLeft> \n
+     *                      \n
+     * @retval  0x00008000  @copydoc JointAngleLimitErrorChest \n
+     *                      <@c #JointAngleLimitErrorChest> \n
+     *                      \n
+     * @retval  0x00010000  @copydoc JointAngleLimitErrorNeck \n
+     *                      <@c #JointAngleLimitErrorNeck> \n
+     *                      \n
+     * @retval  0x00080000  @copydoc RotationMatrixError \n
+     *                      <@c #RotationMatrixError> \n
+     *                      \n
+     * @retval  0x00800000  @copydoc ProtectiveStopState \n
+     *                      <@c #ProtectiveStopState> \n
+     *                      \n
+     * @retval  0x01000000  @copydoc ServoEmergency \n
+     *                      <@c #ServoEmergency> \n
+     *                      \n
+     * @retval  0x10000000  @copydoc InterruptedRightArm \n
+     *                      <@c #InterruptedRightArm> \n
+     *                      \n
+     * @retval  0x20000000  @copydoc InterruptedLeftArm \n
+     *                      <@c #InterruptedLeftArm> \n
+     *                      \n
+     * @retval  0x40000000  @copydoc InterruptedNeck \n
+     *                      <@c #InterruptedNeck> \n
+     *                      \n
+     * @retval  0x80000000  @copydoc InterruptedChest \n
+     *                      <@c #InterruptedChest> \n
+     *                      \n
+     * 
+     */
+    unsigned long getStatus();
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     ** @brief   ジョイントキャリブレーションを実行します。
+     * 
+     * 指定されたキャリブレーション開始時の姿勢（開始姿勢）から，微小（4deg）に各関節を動かします。 \n
+     * 開始姿勢に移行する動作パターンを任意に定義できます。
+     * 
+     * 既にキャリブが終了している場合でも、サーボＯＦＦの状態で、このコマンドを発行すると、再度キャリブを実行できます。 \n
+     * センサエラーで、サーボが入らなくなった時や、原点がずれた疑いがある場合に再度原点復帰をすることが出来ます。
+     * 
+     * @par キャリブレーションの動作:
+     *      -# 開始姿勢へ移行する。
+     *         -# 最初に動かす関節軸の組み合わせ @a seq [0] に含まれる関節軸が， @a angles で指定した開始角度へ移行する。
+     *         -# 上記同様に， @a seq [1] , @a seq [2] ... と順番に移行する。
+     *      -# 全軸が @a rot の指定値（回転方向）に従って 4 deg 回転する。
+     *      -# サーボ OFF。
+     *      -# システム内で，結果のキャリブレーション値が保存される。
+     *      -# サーボ ON。
+     * 
+     * @par 例:
+     *      @code
+     * const coordServer::LngLngSeq  seq = {JointREP | JointLEP, JointCY | JointNY+...}; //要 全軸指定
+     * const float  angle[15] = {0 , 0,0 , 0,0,-130,15,0,0 , 0,0,-130,-15,0,0};
+     * const bool   rot[15]   = {0 , 1,0 , 0,1,   0, 0,0,0 , 1,1,   0,  1,0,1};
+     * CORBA::ULong &status;
+     * coordServer::jointCalibration(seq, angle, rot, status);
+     *      @endcode
+     * 
+     * @attention  周辺の状態に関係なく，キャリブレーション開始姿勢 @a seq に移行します。 \n
+     *             @a seq の設定には充分注意してください。
+     * @param[in]  seq 動作順序を指定します。 \n
+     *                 同時に動作させたい関節軸の組み合わせを OR演算で生成し，
+     *                 その値のリスト（@c LngLngSeq 型）を入力してください。 \n
+     *                 関節軸は各ビット毎に割り当てられています。
+     *                 （@ref CoordConst_JointPartRef "関節角名称" の内容と同一）。 \n
+     *                 - 0x00000001 : @copydoc JointCY  <@c #JointCY>
+     *                 - 0x00000002 : @copydoc JointNY  <@c #JointNY>
+     *                 - 0x00000004 : @copydoc JointNP  <@c #JointNP>
+     *                 - 0x00000008 : @copydoc JointRSY <@c #JointRSY>
+     *                 - 0x00000010 : @copydoc JointRSP <@c #JointRSP>
+     *                 - 0x00000020 : @copydoc JointREP <@c #JointREP>
+     *                 - 0x00000040 : @copydoc JointRWY <@c #JointRWY>
+     *                 - 0x00000080 : @copydoc JointRWP <@c #JointRWP>
+     *                 - 0x00000100 : @copydoc JointRWR <@c #JointRWR>
+     *                 - 0x00000200 : @copydoc JointLSY <@c #JointLSY>
+     *                 - 0x00000400 : @copydoc JointLSP <@c #JointLSP>
+     *                 - 0x00000800 : @copydoc JointLEP <@c #JointLEP>
+     *                 - 0x00001000 : @copydoc JointLWY <@c #JointLWY>
+     *                 - 0x00002000 : @copydoc JointLWP <@c #JointLWP>
+     *                 - 0x00004000 : @copydoc JointLWR <@c #JointLWR>
+     *
+     * @param[in]  angles キャリブレーション開始時の姿勢（関節角度）を指定します。 \n
+     *                    腰・首・右腕・左腕 の順 （上記 @a seq の説明順） で，指定します。
+     *                    - この開始姿勢の角度精度には， 1 deg 程度の誤差があります。 \n
+     *                      さらに，キャリブレーションの為に各軸が 4 deg 回転しますので，
+     *                      その角度ずれ分を考慮して，開始姿勢を定義してください。
+     *
+     * @param[in]  rot    キャリブレーション中の各関節軸の回転方向を指定します。 \n
+     *                    腰・首・右腕・左腕 の順 （上記 @a seq の説明順） で，指定します。
+     *                    - true  : 正回転
+     *                    - false : 負回転
+     *
+     * @param[out] status キャリブレーションの詳細結果を返します。 
+     *                    - 0x00010001 : シーケンスチェックエラー（何も指定されていないシーケンスがある）
+     *                    - 0x00010002 : シーケンスチェックエラー（同じ関節が２回指定されている）
+     *                    - 0x00010003 : シーケンスチェックエラー（指定されていない関節がある。）
+     *                    - 0x00010004 : シーケンスチェックエラー（存在しない関節が指定されている。）
+     *                    - 0x00020001 : 入力関節角度リミットオーバー
+     *                    - 0x00020002 : 4deg 回転後関節角度リミットオーバー
+     *                    - 0x00030001～0x0003000F: シーケンスseq[status-0x30001] 実行中のサーボＯＮエラー
+     *                    - 0x00040001～0x0004000F: シーケンスseq[status-0x40001] 実行中の運動中エラー
+     *                    - 0x00050001 : 4deg 回転時のエラー
+     *                    - 0x00060001 : Z相位相合わせ最終チェックエラー
+     *                    - 0x00070001 : サーボＯＮswitchServo(true)エラー
+     *                    - 0x00080000 : キャリブ完了フラグのクリア \n
+     *                                   このビットはキャリブ開始時にキャリブをする必要が無い場合のみ他のフラグに足されます。 \n
+     *                                   ロボットがキャリブできない状態や、入力されたコマンドが異常な場合には、このフラグは立ちません。 \n
+     *                                   このフラグが立つと、一旦キャリブ完了フラグがクリアされますので、キャリブが正常に終了するまで、 \n
+     *                                   switchServo(true)で、サーボを入れることが出来なくなります。
+     *                    - 0x00100000 : ロボットがキャリブできない状態 \n
+     *                                   要因：サーボＯＮである。エマーボタンが押されている。一旦停止が掛かっている。
+     * 
+     * @retval "true  (=1)" 成功。
+     * @retval "false (=0)" 失敗。 引数不良時も @a false になります。
+     */
+    boolean jointCalibration(
+        in LngLngSeq seq,
+        in FltArray15 angles,
+        in BolArray15 rot,
+        out unsigned long status
+    );
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     *  @brief   ジョイントキャリブレーションの状態（完了済み）をチェックします。
+     *
+     * @retval  "true  (=1)" キャリブレーション完了済み。
+     * @retval  "false (=0)" キャリブレーション未実施 または 未完了。
+     */
+    boolean checkCalibration();
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief   サーボ・リレーのON/OFFを行ないます。
+     * 
+     * 引数が @a false の時は，サーボをOFFし，@c #ServoEmergency状態を解除します。 \n
+     * 引数が @a true  の時は，サーボの指令値と目標値を一致させて，リレーおよびサーボをONします。
+     * 
+     * 下記の場合は指令失敗となり，@a false が返されます。
+     * - 起動後にキャリブレーションを行なわない状態で，このコマンドを実行した。
+     * 
+     * @param[in]  t  サーボON/OFFの選択。
+     *                - true  (=1) : サーボをONします。
+     *                - false (=0) : サーボをOFFします。
+     * @retval     "true  (=1)" 成功。
+     * @retval     "false (=0)" 失敗。
+     */
+    boolean switchServo(in boolean t);
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     ** @brief   サーボの ON / OFF 状態を返します。
+     *
+     * @param[out] status  詳細 （モータドライバの状態） を返します。 \n
+     *                     軸番号の順で状態値が配列に入ります。
+     *                     - status[0]  = @copydoc JointCY
+     *                     - status[1]  = @copydoc JointNY
+     *                     - status[2]  = @copydoc JointNP
+     *                     - status[3]  = @copydoc JointRSY
+     *                     - status[4]  = @copydoc JointRSP
+     *                     - status[5]  = @copydoc JointREP
+     *                     - status[6]  = @copydoc JointRWY
+     *                     - status[7]  = @copydoc JointRWP
+     *                     - status[8]  = @copydoc JointRWR
+     *                     - status[9]  = @copydoc JointLSY
+     *                     - status[10] = @copydoc JointLSP
+     *                     - status[11] = @copydoc JointLEP
+     *                     - status[12] = @copydoc JointLWY
+     *                     - status[13] = @copydoc JointLWP
+     *                     - status[14] = @copydoc JointLWR
+     *                     .
+     *                     各配列値の内容は下記の通りです。
+     *                     - bit  0 : [MNT] システムスタンバイモード
+     *                     - bit  1 : [MNT] サーボスタンバイモード
+     *                     - bit  2 : [MNT] サーボ ON モード
+     *                     - bit  3 : [MNT] ワーニングモード
+     *                     - bit  4 : [MNT] アラームモード
+     *                     - bit  5 : [MNT] 同期モード ON
+     *                     - bit  6 : [MNT] 非常停止ボタン解除（イネーブル ON）
+     *                     - bit  7 : [MNT] 位置決め完了
+     *                     - bit  8 : [Alarm] 位置偏差エラー
+     *                     - bit  9 : [Alarm] モータ電源過大，途絶エラー
+     *                     - bit 10 : [Alarm] 通信エラー
+     *                     - bit 11 : [Alarm] ホールセンサ，エンコーダエラー
+     *                     - bit 12 : [Alarm] 過熱エラー
+     *                     - bit 13 : [Alarm] 加速度エラー
+     *                     - bit 14 : [Alarm] 過電流エラー
+     *                     - bit 15 : [Alarm] 過負荷エラー
+     * 
+     * @retval  "true  (=1)" 全関節 サーボON。
+     * @retval  "false (=0)" 上記以外 （サーボOFFの関節がある）。
+     */
+    boolean getServoStatus(out LngArray15 status);
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief   指定部位のサーボをロックし，バッファに溜っている動作を空にします（一旦停止）。
+     * 
+     * @c exitProtectiveStop() でロック状態を明示的に解除しない限り，ロック後の動作指令を受け付けません。 \n
+     * ロック ID を 0 にした場合は，ロック動作は行われず，現在のロックの状態を取得することが出来ます。 \n
+     * ロックが掛かっている部位に関しては，動作指令を受け付けません。 \n
+     *
+     * @note       ロック状態を解除した直後に本コマンドを実行した場合，ロックに失敗することがあります。
+     * @param[in]  inputID   全部位のロック ID リスト。
+     *                       - [形式] \n
+     *                         <tt> ( 腰のID, 首のID, 右腕のID, 左腕のID) </tt>
+     *                       - [例1] 右腕のみを bit指定でロックする場合： \n
+     *                         <tt> ( 0x0, 0x0, 0x1, 0x0 ) </tt>
+     *                       - [例2] 全部位をロックする場合： \n
+     *                         <tt> ( 0x1, 0x1, 0x1, 0x1 ) </tt>
+     *                       .
+     *                       \n
+     *                       ID の定義は以下の通りです。 \n
+     *                       上位4bit はシステム領域のため，状態遷移の度に上書きされますが，利用は問題ありません。
+     *                       - 0x01-0x08  : ユーザ定義
+     *                       - 0x10       : IK エラー
+     *                       - 0x20       : 予約
+     *                       - 0x40       : 予約
+     *                       - 0x80       : 安全機構 （一旦停止SWなど）
+     *                       - 0x100-     : 予約
+     *                       \n
+     * @param[out] outputID  本コマンド実行結果のロック ID リスト。 \n
+     *                       ロックが掛かっている所のみ，bit が 1 になります。 \n
+     *                       形式は @a inputID と同一です。
+     * @return     無し。 
+         */
+    void protectiveStop(in LngArray4 inputID, out LngArray4 outputID);
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     *
+     * @brief   サーボロックを解除します（一旦停止の解除）。
+     *
+     * サーボロックの要因は以下のようになります。
+     * - @c protectiveStop()． で明示的にロックを掛けた。
+     * - 動作コマンドの実行時に下記エラーが起きた。
+     *   - @c #IKErrorRight
+     *   - @c #IKErrorLeft
+     *   .
+     * - 一旦停止SW または 一旦停止用DIOポートが ON（有効）になった。
+     * 
+     * ロックを解除した時，ロボットの動作はありません。 \n
+     * 動作中にロック・解除した場合においても，コマンドが破棄されているため，解除した位置・姿勢が保持されます。
+     * 
+     * ロックされているかどうかは，下記のいずれにおいても，
+     * @c #ProtectiveStopState のビットが立っているかどうかにより確認できます。
+     * - @c getStatus()
+     * - 動作コマンドのout型引数 @a status
+     * - 設定コマンド（@c setOffsetRightHand() など）の戻り値
+     * 
+     * @note    ロック状態になった直後に本コマンドを実行すると，失敗する場合があります。
+     * @note    ロック解除中に再度解除を行なった場合，コマンドは無視されます。
+     * @param[in]  inputID   全部位のロック ID リスト。
+     *                       - [形式] \n
+     *                         <tt> ( 腰のID, 首のID, 右腕のID, 左腕のID ) </tt>
+     *                       - [例1] IKエラーなども含めて，右腕のみ解除する場合： \n
+     *                         <tt> ( 0x0, 0x0, 0xff, 0x0 ) </tt>
+     *                       - [例2] 解除可能な部位全てを解除する場合： \n
+     *                         <tt> ( 0xff, 0xff, 0xff, 0xff ) </tt>
+     *                       .
+     *                       \n
+     *                       ID の定義は以下の通りです。 \n
+     *                       上位4bit はシステム領域のため，状態遷移の度に上書きされますが，利用は問題ありません。
+     *                       - 0x01-0x08  : ユーザ定義
+     *                       - 0x10       : IK エラー
+     *                       - 0x20       : 予約
+     *                       - 0x40       : 予約
+     *                       - 0x80       : 安全機構 （一旦停止SWなど）
+     *                       - 0x100-     : 予約
+     *                       \n
+     * @param[out] outputID  本コマンド実行結果のロック ID リスト。 \n
+     *                       ロックが掛かっている所のみ，bit が 1 になります。 \n
+     *                       形式は @a inputID と同一です。
+     * @return     無し。 
+     */
+    void exitProtectiveStop(in LngArray4 inputID, out LngArray4 outputID);
+
+    /*!
+     *@ingroup coordServerGroup_Ref
+     * @brief  実行中の動作をキャンセル（指令破棄）します。
+     *
+     * @a part で指定された部位について，実行中の動作指令を破棄します。 \n
+     * その部位はサーボロック状態で停止します。
+     *
+     * @param[in,out] part 部位を指定します（@ref CoordConst_inMotionRef "部位指定用定数" の内容と同一）。
+     *                \n
+     *                      - 0x01 : 首
+     *                      - 0x02 : 腰
+     *                      - 0x04 : 右腕
+     *                      - 0x08 : 左腕
+     *                      .
+     *                      部位が複数に渡る場合は，加算した数値を指定してください。 \n
+     *                      （例） 全軸指定の場合 : 0x01 + 0x02 + 0x04 + 0x08 = 0x0f \n
+     *                      \n
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗。
+     */
+    boolean motionCancel(inout octet part);
+
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief   ロボットの指定部位の動作状態取得 / 動作終了待ちを行ないます。
+     * 
+     * 下記 2種類の機能があります。
+     * - 指定部位が動作中であるか否かを調べる。
+     * - 動作が終了するまで待つ（制御を返さない）。
+     * 
+     * 定義されていない部位，部位無しの値（@c 0x00, @c 0x10 など）を指定した場合，
+     * このコマンドは何も実行しません。
+     * 
+     * @param[in, out] part 部位を指定 / 返されます。
+     *                      - [in ] 部位を指定します。
+     *                      - [out] 指定されている部位のうち，動作中の部位の合計値が返されます。
+     *                      .
+     *                      \n
+     *                      部位は下記のようになります（@ref CoordConst_inMotionRef "部位指定用定数" の内容と同一）。
+     *                      - 0x01 : 首
+     *                      - 0x02 : 腰
+     *                      - 0x04 : 右腕
+     *                      - 0x08 : 左腕
+     *                      .
+     *                      部位が複数に渡る場合は，加算した数値を指定してください。 \n
+     *                      （例） 全軸指定の場合 : 0x01 + 0x02 + 0x04 + 0x08 = 0x0f \n
+     *                      \n
+     *                      指定部位が動作していない場合，戻り値は 0x0 になります。 \n
+     *                      \n
+     * @param[in]      wait 動作終了待ち機能の使用/未使用を選択します。
+     *                 - true ( =1) : 動作終了するまで制御を返しません。 \n
+     *                   @c #ProtectiveStopState 状態の場合，ロックが解除されるまで制御を返しません。 \n
+     *                   必要に応じて，ロック状態監視・解除プログラムを別に用意してください。
+     *                 - false (=0) : 動作終了を待たずに制御を返します。
+     * @retval         "true  (=1)" 動作中。
+     * @retval         "false (=0)" 停止中。
+     */
+    boolean inMotion(
+        inout octet part,
+        in boolean wait
+    );
+    
+    
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief  座標変換サーバ内 IDLファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba5"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:42:50 2008 +0900"
+     * @return     無し。
+     */
+    void getIDLVersionString(out string revision, out string date);
+
+    /*!
+     *@ingroup  coordServerGroup_Ref
+     * @brief  座標変換サーバ内 ソースファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba6"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:52:50 2008 +0900"
+     * @return     無し。
+     */
+    void getSrcVersionString(out string revision, out string date);
+
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "";
+
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "";
+};
+
+#endif
+
+
+

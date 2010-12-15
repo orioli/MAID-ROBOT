@@ -1,0 +1,12 @@
+
+%module KSP
+
+%include <stl.i>
+%include <carrays.i>
+%array_class(double, dblArray);
+
+%{
+#include "Robot.hpp"
+%}
+
+%include "Robot.hpp"

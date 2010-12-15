@@ -1,0 +1,60 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*
+ * dioPluginインターフェース ユーザ用定数定義ファイル（ THK（株）殿 64port DIO ）
+ *
+ * このファイルは自由に書き換え可能です。
+ * 変更する際は，CORBA IDL の書式に合わせてください。
+ */
+
+#ifndef __DIOPLUGIN_CONSTUSER_IDL__
+#define __DIOPLUGIN_CONSTUSER_IDL__
+
+#include "dioPlugin.idl"
+
+interface dioPlugin_constUser_THK64
+{
+    // dioPlugin::setDout() にて，チャックハンド等の状態を設定する際に利用できます。
+    // 数値を直接入力できます。
+    
+    const octet VLA_START            = dioPlugin::DoutPort34; ///< VLA Start
+    const octet LeftHandClose        = dioPlugin::DoutPort37; ///< 左ハンド クローズ
+    const octet LeftHandOpen         = dioPlugin::DoutPort38; ///< 左ハンド オープン
+    const octet VLA_P0               = dioPlugin::DoutPort40; ///< VLA P0
+    const octet VLA_P1               = dioPlugin::DoutPort41; ///< VLA P1
+    const octet VLA_ZSTR             = dioPlugin::DoutPort42; ///< VLA ZSTR
+    const octet RightHandClose       = dioPlugin::DoutPort43; ///< 右ハンド クローズ
+    const octet RightHandOpen        = dioPlugin::DoutPort44; ///< 右ハンド オープン
+    const octet TurnTableStart       = dioPlugin::DoutPort45; ///< ターンテーブル Start
+    const octet TurnTableP_DATA1     = dioPlugin::DoutPort46; ///< ターンテーブル P_DATA 1
+    const octet TurnTableP_DATA2     = dioPlugin::DoutPort47; ///< ターンテーブル P_DATA 2
+    const octet TurnTableP_DATA3     = dioPlugin::DoutPort48; ///< ターンテーブル P_DATA 3
+    const octet TurnTableHOME        = dioPlugin::DoutPort49; ///< ターンテーブル Home
+    const octet TurnTableHOME_SIGNAL = dioPlugin::DoutPort50; ///< ターンテーブル Home Signal
+    const octet TurnTableINC         = dioPlugin::DoutPort51; ///< ターンテーブル INC
+    const octet HandsHOME            = dioPlugin::DoutPort53; ///< 左右ハンド(Home)
+    const octet TurnHOME             = dioPlugin::DoutPort54; ///< ハンド回転軸(Turn Home)
+    const octet TurnCCW              = dioPlugin::DoutPort55; ///< ハンド回転軸(CCW)
+    const octet SIGNAL_TOWER_RED     = dioPlugin::DoutPort62; ///< シグナルタワー(赤)
+    const octet SIGNAL_TOWER_ORANGE  = dioPlugin::DoutPort63; ///< シグナルタワー(橙)
+    const octet SIGNAL_TOWER_GREEN   = dioPlugin::DoutPort64; ///< シグナルタワー(緑)
+
+
+    // dioPlugin::getDin() にて チャックハンド等の状態を判断する際に利用できます。
+    // 数値と直接比較できます。
+    
+    const unsigned long long LeftClampOK   = dioPlugin::DinPort33; ///< 左ハンド CLANP OK
+    const unsigned long long VLA_BUSY      = dioPlugin::DinPort35; ///< Vla BUSY
+    const unsigned long long LeftBusy      = dioPlugin::DinPort36; ///< 左ハンド BUSY
+    const unsigned long long RightClampOK  = dioPlugin::DinPort39; ///< 右ハンド CLANP OK
+    const unsigned long long TurnTableBusy = dioPlugin::DinPort52; ///< ターンテーブルBUSY
+    const unsigned long long TurnBUSY      = dioPlugin::DinPort56; ///< ハンド回転軸 BUSY
+    const unsigned long long TurnERROR     = dioPlugin::DinPort57; ///< ハンド回転軸 ERROR
+    const unsigned long long ROLLER1       = dioPlugin::DinPort58; ///< ローラー有１
+    const unsigned long long ROLLER2       = dioPlugin::DinPort59; ///< ローラー有２
+    const unsigned long long SLIDE1        = dioPlugin::DinPort60; ///< リング置き台位置確認１
+    const unsigned long long SLIDE2        = dioPlugin::DinPort61; ///< リング置き台位置確認２
+    
+};
+
+#endif
+

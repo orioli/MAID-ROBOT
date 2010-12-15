@@ -1,0 +1,113 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      hiroCommonStatus.idl
+ * @brief     双腕ロボット用　共通ステータス インターフェース 定義ファイル
+ *
+ */
+#ifndef __HIRO_COMMON_STATUS_IDL__
+#define __HIRO_COMMON_STATUS_IDL__
+
+/*!
+ * @brief ロボット共通ステータス
+ */
+module hiroCommonStatus
+{
+    /*!
+     *@addtogroup  hiroCommonStatusGroup_Ref  hiroCommonStatus
+     */
+
+	/*!
+	 * @ingroup hiroCommonStatusGroup_Ref
+	 * @brief ステータスで使用する型
+	 *
+	 * 　
+	 */
+	typedef short statusType;
+
+	/*!
+	 * @ingroup hiroCommonStatusGroup_Ref
+	 * @brief 複数個ステータスを返す為の型
+	 *
+	 * 　
+	 */
+	typedef sequence< statusType > statSequence;
+
+	/*!
+	 * @ingroup hiroCommonStatusGroup_Ref
+	 * @addtogroup hiroCommonStatus_Var_Ref Status Information
+	 * @{
+	 * @brief 各種ステータスの名前です。
+	 *
+	 */
+
+	const statusType ANGLE_UPPER_LIMIT_ERROR    = 0x0001;		///< ソフトウェアリミット上限より大きい。
+	const statusType ANGLE_LOWER_LIMIT_ERROR    = 0x0002;		///< ソフトウェアリミット下限より小さい。
+	const statusType INVERSE_KINEMA_ERROR       = 0x0003;		///< IKエラーが発生した。
+
+	const statusType IN_VALUE_LENGTH_ERROR	    = 0x0010;		///< 入力引数の数が異なる。
+
+	const statusType IN_1_VALUE_LENGTH_ERROR	= 0x0011;		///< １番目の入力引数の数が異なる。
+	const statusType IN_2_VALUE_LENGTH_ERROR	= 0x0012;		///< ２番目の入力引数の数が異なる。
+	const statusType IN_3_VALUE_LENGTH_ERROR	= 0x0013;		///< ３番目の入力引数の数が異なる。
+	const statusType IN_4_VALUE_LENGTH_ERROR	= 0x0014;		///< ４番目の入力引数の数が異なる。
+	const statusType IN_5_VALUE_LENGTH_ERROR	= 0x0015;		///< ５番目の入力引数の数が異なる。
+	const statusType IN_6_VALUE_LENGTH_ERROR	= 0x0016;		///< ６番目の入力引数の数が異なる。
+	const statusType IN_7_VALUE_LENGTH_ERROR	= 0x0017;		///< ７番目の入力引数の数が異なる。
+	const statusType IN_8_VALUE_LENGTH_ERROR	= 0x0018;		///< ８番目の入力引数の数が異なる。
+	const statusType IN_9_VALUE_LENGTH_ERROR	= 0x0019;		///< ９番目の入力引数の数が異なる。
+	const statusType IN_10_VALUE_LENGTH_ERROR	= 0x001A;		///< １０番目の入力引数の数が異なる。
+	const statusType IN_11_VALUE_LENGTH_ERROR	= 0x001B;		///< １１番目の入力引数の数が異なる。
+	const statusType IN_12_VALUE_LENGTH_ERROR	= 0x001C;		///< １２番目の入力引数の数が異なる。
+	const statusType IN_13_VALUE_LENGTH_ERROR	= 0x001D;		///< １３番目の入力引数の数が異なる。
+	const statusType IN_14_VALUE_LENGTH_ERROR	= 0x001E;		///< １４番目の入力引数の数が異なる。
+	const statusType IN_15_VALUE_LENGTH_ERROR	= 0x001F;		///< １５番目の入力引数の数が異なる。
+
+    const statusType IN_KIND_ERROR              = 0x1000;       ///< 定義されていない「入力の単位系」を入力した。
+    const statusType OUT_KIND_ERROR             = 0x1001;       ///< 定義されていない「出力の単位系」を入力した。
+    const statusType JOINT_NUM_ERROR            = 0x1002;       ///< 実装されていない軸が指定された。
+    const statusType PART_NUM_ERROR             = 0x1003;       ///< 実装されていない部位が指定された。
+    const statusType PLUGIN_NAME_ERROR          = 0x1004;       ///< プラグインの名前が登録されていない。
+
+    const statusType KIND_ERROR                 = 0x2000;       ///< 定義されていない「単位系」を入力した。
+    const statusType VALUE_ZERO_ERROR           = 0x2001;       ///< 指令値が０個である。
+    const statusType MISSMATCH_ERROR            = 0x2002;       ///< 目標位置と収束初期値の値が異なる。
+    const statusType INI_JOINT_ERROR            = 0x2003;       ///< 収束初期値の軸数がおかしい。
+    const statusType VALUE_JOINT_ERROR          = 0x2004;       ///< 指令値の軸数がおかしい。
+    const statusType FIRST_TIME_ERROR           = 0x2005;       ///< 収束初期値の最初の時間が０でない。
+    const statusType OTHER_MOTION_ERROR         = 0x2006;       ///< 他の動作が実行中で、指令が実行できなかった。
+    const statusType TIME_CHANGE_WARNING        = 0x2007;       ///< 動作時間が変更された。
+    const statusType FIRST_POINT_ERROR          = 0x2008;       ///< パターンの先頭と現在位置が異なる。
+    const statusType FALL_ON_JOINT_ERROR        = 0x2009;       ///< 使用軸が重なっていた。
+
+	const statusType SPEED_ZERO_ERROR           = 0x200A;       ///< 速度パーセント・最小移動時間の両方に0を入力した。
+	const statusType PROTECTIVE_STOP_ERROR      = 0x200B;       ///< 一旦停止中。
+
+	const statusType SERVO_STATUS_ERROR         = 0x3000;       ///< ロボットがキャリブできない状態。
+
+	const statusType NO_CONTENTS_SEQ_ERROR      = 0x3001;       ///< 入力したシーケンスに何も指定されていないものがある。
+	const statusType SAME_JOINT_SEQ_ERROR       = 0x3002;       ///< 入力したシーケンスに同じ軸が2回指定されている。
+	const statusType NOT_SPECIFIED_JOINT_ERROR  = 0x3003;       ///< 入力したシーケンスで全軸を指定していない。
+	const statusType UNKNOWN_JOINT_ERROR        = 0x3004;       ///< 入力したシーケンスで存在しない軸を指定した。
+
+	const statusType INPUT_ANGLE_ERROR          = 0x3005;       ///< ジョイントキャリブに入力した動作角度がソフトリミットを超える。
+	const statusType CALIB_ANGLE_ERROR          = 0x3006;       ///< ジョイントキャリブでの指令値(入力値±約４度)がソフトリミットを超える。
+	const statusType RE_CALIBRATION             = 0x3007;       ///< ジョイントキャリブ実施後、再度ジョイントキャリブを実施した。
+	const statusType EMERGENCY_ERROR            = 0x3008;       ///< ジョイントキャリブ中にエマージェンシー状態になった。
+	
+	const statusType MOVE_FOR_ZPOS_ERROR        = 0x300b;       ///< キャリブレーションのための動作中にエラーが発生した。
+	const statusType CALIBRATION_ERROR          = 0x300c;       ///< キャリブレーションに失敗した。
+	const statusType SERVO_ON_ERROR             = 0x300d;       ///< ジョイントキャリブ後のサーボONに失敗した。
+	const statusType GET_MC_ERROR               = 0x300e;       ///< ジョイントキャリブ中の動作書き込み権限を取得できなかった。
+
+	const statusType MOVE_TO_CALIB_SERVO_ERROR  = 0x4001;       ///< ジョイントキャリブ実施地点に移動するためのサーボONに失敗した。
+	const statusType MOVE_TO_CALIB_ERROR        = 0x5001;       ///< ジョイントキャリブ実施地点に移動中にエラーが発生した。
+
+	/*! @} */
+
+
+
+};
+
+#endif
+
+//EOF

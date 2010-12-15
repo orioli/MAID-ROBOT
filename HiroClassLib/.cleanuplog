@@ -1,0 +1,29 @@
+this is log file for repository cleanup script.
+6:
+7:
+8:
+? HRPcontroller.cpp
+? HRPcontroller.hpp
+? KSP_wrap.cpp
+? OpenHRPCommon.cpp
+? OpenHRPCommon.hpp
+? armServer.cpp
+? armServer.hpp
+? coordServer.cpp
+? coordServer.hpp
+? hiroCommonStatus.cpp
+? hiroCommonStatus.hpp
+? jointAnglePlugin.cpp
+? jointAnglePlugin.hpp
+? linearPlugin.cpp
+? linearPlugin.hpp
+? protectPlugin.cpp
+? protectPlugin.hpp
+? servoPlugin.cpp
+? servoPlugin.hpp
+? statusPlugin.cpp
+? statusPlugin.hpp
+? systemCommand.cpp
+? systemCommand.hpp
+9:
+10:

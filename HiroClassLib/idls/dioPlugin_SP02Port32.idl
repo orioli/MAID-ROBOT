@@ -1,0 +1,387 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      dioPlugin.idl
+ * @brief     dioPluginインターフェース 定義ファイル
+ * 
+ */
+
+/*!
+ * @page WordPage 用語について
+ * <hr>
+ * @section SignalLight_Ref 表示灯
+ *     表示灯には下記 2種類があります。連動動作します。
+ *     - ロボット本体にある LED （胴体背面）， ブザー （胴体内部）
+ *     - 外部シグナルタワー （DIO端子台に接続）
+ *     
+ *     @c dioPlugin::setDout() により表示状態を変更できますが，
+ *     ロボット本体のLEDおよびブザーについては，ロボットコントローラにより強制的に上書きされます。\n
+ *     外部シグナルタワーについては，仕様により動作が異なります。
+ *     
+ *     @par 関連: 
+ *               @ref DioConst_SignalLightPortMap_Ref
+ */
+
+#ifndef OPENHRP_DIOPLUGIN_IDL
+#define OPENHRP_DIOPLUGIN_IDL
+
+#include "HRPcontroller.idl"
+
+/*!
+ * @brief DIOインターフェース（ハンド部を含む）
+ */
+interface dioPlugin : OpenHRP::Plugin
+{
+    /*!
+     *@addtogroup  DioGroup_Ref  dioPlugin
+     * @brief DIOポート操作プラグイン #dioPlugin
+     */
+
+    /*!
+     *@addtogroup  DioFuncGroup_Ref  Functions
+     * @ingroup DioGroup_Ref
+     * @brief 各種コマンド群です。
+     */
+    
+    /*!
+     *@addtogroup  DioConstGroup_Dout_Ref  Dout Const. Values
+     * @ingroup DioGroup_Ref
+     * @brief DIOポート - Dout に関する定数です。
+     */
+
+    /*!
+     *@addtogroup  DioConstGroup_Din_Ref  Din Const. Values
+     * @ingroup DioGroup_Ref
+     * @brief DIOポート - Din に関する定数です。
+     */
+    
+    /*!
+     *@addtogroup  DioConst_BlinkingCycle_Ref  Dout Setting
+     * @ingroup DioConstGroup_Dout_Ref
+     * @{
+     * @c setDout() にて，ON / OFF を設定する際に使用します。\n
+     * 数値を直接入力できます。
+     */
+    const unsigned long DO_OFF = 0x0;        ///< 出力 OFF (Open)
+    const unsigned long DO_ON  = 0xFFFFFFFF; ///< 出力 ON  (Short)
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConst_DoutPortMap_Ref  Dout Portmap
+     * @ingroup DioConstGroup_Dout_Ref
+     * @{
+     * @c setDout() にて Dout を操作する際に利用できます。\n
+     * 数値を直接入力できます。
+     */
+    const octet DoutUser1  = 1;  ///< Doutポートno.1
+    const octet DoutUser2  = 2;  ///< Doutポートno.2     
+    const octet DoutUser3  = 3;  ///< Doutポートno.3
+    const octet DoutUser4  = 10; ///< Doutポートno.10
+    const octet DoutUser5  = 11; ///< Doutポートno.11
+    const octet DoutUser6  = 12; ///< Doutポートno.12
+    const octet DoutUser7  = 13; ///< Doutポートno.13
+    const octet DoutUser8  = 14; ///< Doutポートno.14
+    const octet DoutUser9  = 15; ///< Doutポートno.15
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConst_DinPortMap_Ref  Din Portmap
+     * @ingroup DioConstGroup_Din_Ref
+     * @{
+     * @c getDin() にて Din の値を判断する際に利用できます。\n
+     * 数値と直接比較できます。
+     */
+    const unsigned short DinUser1  = 0x0001; ///< Dinポートno.1
+    const unsigned short DinUser2  = 0x0002; ///< Dinポートno.2
+    const unsigned short DinUser3  = 0x0004; ///< Dinポートno.3
+    const unsigned short DinUser4  = 0x0008; ///< Dinポートno.4
+    const unsigned short DinUser5  = 0x0040; ///< Dinポートno.7
+    const unsigned short DinUser6  = 0x0080; ///< Dinポートno.8
+    const unsigned short DinUser7  = 0x0100; ///< Dinポートno.9
+    const unsigned short DinUser8  = 0x0400; ///< Dinポートno.10
+    const unsigned short DinUser9  = 0x0800; ///< Dinポートno.12
+    const unsigned short DinUser10 = 0x1000; ///< Dinポートno.13
+    const unsigned short DinUser11 = 0x2000; ///< Dinポートno.14
+    const unsigned short DinUser12 = 0x4000; ///< Dinポートno.15
+    const unsigned short DinUser13 = 0x8000; ///< Dinポートno.16
+    /*! @} */
+     
+    /*!
+     *@addtogroup  DioConst_SystemStatePortMap_Ref  System State Portmap
+     * @ingroup DioConstGroup_Din_Ref
+     * @{
+     * @c getDin() にて ロボットの状態を判断する際に利用できます。\n
+     * 数値と直接比較できます。
+     */
+    const unsigned short MotorPowerSupply  = 0x0010; ///< モーターパワー ON
+    const unsigned short SystemPowerSupply = 0x0020; ///< ロボットシステム電源 ON
+    const unsigned short ProtectiveStop    = 0x0200; ///< 保護停止中
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConst_SignalLightPortMap_Ref  Signal Light Portmap
+     * @ingroup DioConstGroup_Dout_Ref
+     * @{
+     * @c setDout() にて，@ref SignalLight_Ref "表示灯" の点灯状態を設定する際に利用できます。\n
+     * 数値を直接入力できます。
+     */
+    const octet RedLight       = 5; ///< 表示灯（赤）
+    const octet YellowLight    = 6; ///< 表示灯（黄）
+    const octet GreenLight     = 7; ///< 表示灯（緑）
+    const octet WhiteLight     = 8; ///< 表示灯（白）
+    const octet Buzzer         = 9; ///< 表示灯（ブザー）
+    /*! @} */
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief   Dinの状態を返します。
+     *
+     * ポートマップは以下の通りです。\n
+     * @ref DioConst_DinPortMap_Ref         "Dinポートマップ" ,
+     * @ref DioConst_SystemStatePortMap_Ref "システム状態ポートマップ" に同じ内容の定数が定義されています。
+     *
+     * - bit 0  : < ユーザ定義 no.1 >
+     * - bit 1  : < ユーザ定義 no.2 >
+     * - bit 2  : < ユーザ定義 no.3 >
+     * - bit 3  : < ユーザ定義 no.4 >
+     * - bit 4  : モーターパワー ON --- @c #MotorPowerSupply
+     * - bit 5  : ロボットシステム電源 ON --- @c #SystemPowerSupply
+     * - bit 6  : < ユーザ定義 no.5 >
+     * - bit 7  : < ユーザ定義 no.6 >
+     * - bit 8  : < ユーザ定義 no.7 >
+     * - bit 9  : 保護停止中 --- @c #ProtectiveStop
+     * - bit 10 : < ユーザ定義 no.8 >
+     * - bit 11 : < ユーザ定義 no.9 >
+     * - bit 12 : < ユーザ定義 no.10 >
+     * - bit 13 : < ユーザ定義 no.11 >
+     * - bit 14 : ロボット電源SW
+     * - bit 15 : エマージェンシーボタン ON / OFF
+     * 
+     * @param   無し。
+     * @return  DIOの状態値。 \n
+     *          本コマンドが呼び出された時点における各ポート状態が，上記ビット割り当てで返されます。 \n
+     *          \n
+     *          ビットと端子台の関係（論理）は以下の通りです。 \n
+     *          - 0 : OFF (Open)
+     *          - 1 : ON  (Short) --- GND端子との接続時
+     */
+    unsigned short getDin(); // 2[bytes]
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Dout設定値を返します （ポート指定）。
+     * 
+     * 指定されたポートの Dout設定値を返します。
+     * 
+     * @param[in] port  取得したいポート番号を指定します。 \n
+     *                  \n
+     *                  ポートマップは以下の通りです。\n
+     *                  @ref DioConst_DoutPortMap_Ref        "Doutポートマップ" ,
+     *                  @ref DioConst_SignalLightPortMap_Ref "表示灯ポートマップ" , 
+     *                  に同じ内容の定数が定義されています。 \n
+     *                  \n
+     *                  - port 0  : 予約済み（操作無効）
+     *                  - port 1  : < ユーザ定義 no.1 >
+     *                  - port 2  : < ユーザ定義 no.2 >
+     *                  - port 3  : < ユーザ定義 no.3 >
+     *                  - port 4  : 予約済み（操作無効）
+     *                  - port 5  : @ref SignalLight_Ref（赤） --- @c #RedLight
+     *                  - port 6  : @ref SignalLight_Ref（黄） --- @c #YellowLight 
+     *                  - port 7  : @ref SignalLight_Ref（緑） --- @c #GreenLight
+     *                  - port 8  : @ref SignalLight_Ref（白） --- @c #WhiteLight
+     *                  - port 9  : @ref SignalLight_Ref（ブザー） --- @c #Buzzer
+     *                  - port 10 : < ユーザ定義 no.4 >
+     *                  - port 11 : < ユーザ定義 no.5 >
+     *                  - port 12 : < ユーザ定義 no.6 >
+     *                  - port 13 : < ユーザ定義 no.7 >
+     *                  - port 14 : < ユーザ定義 no.8 >
+     *                  - port 15 : < ユーザ定義 no.9 > \n
+     *                  .
+     *                  \n
+     * @return    指定されたポートのON / OFF / 点滅周期。 \n
+     *            @ref DioConst_BlinkingCycle_Ref に定義されている以下の定数，および点滅周期が返されます。 \n
+     *            \n
+     *            - 0x00000000 : OFF (Open)  < @c #DO_OFF >
+     *            - 0xFFFFFFFF : ON  (Short) < @c #DO_ON  >
+     *            - 上記以外 : 点滅 （ON / OFF 繰り返し） \n
+     *              10msec 単位で表された点滅周期が返されます （デューティ比 50\%）。\n
+     *              （例） @a 100 の場合，点滅周期 1sec \n
+     */
+    unsigned long getDout(in octet port);
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Dout設定値を返します （全ポート）。
+     * 
+     * ビット毎にポートのDout設定状態を返します。
+     * 
+     * ポートマップは以下の通りです。\n
+     * @ref DioConst_DoutPortMap_Ref        "Doutポートマップ" ,
+     * @ref DioConst_SignalLightPortMap_Ref "表示灯ポートマップ" , 
+     * に同じ内容の定数が定義されています。 \n
+     * \n
+     * - bit 0  : 0 固定（予約済み）
+     * - bit 1  : < ユーザ定義 no.1 >
+     * - bit 2  : < ユーザ定義 no.2 >
+     * - bit 3  : < ユーザ定義 no.3 >
+     * - bit 4  : 0 固定（予約済み）
+     * - bit 5  : @ref SignalLight_Ref（赤） --- (@c #RedLight)
+     * - bit 6  : @ref SignalLight_Ref（黄） --- (@c #YellowLight) 
+     * - bit 7  : @ref SignalLight_Ref（緑） --- (@c #GreenLight)
+     * - bit 8  : @ref SignalLight_Ref（白） --- (@c #WhiteLight)
+     * - bit 9  : @ref SignalLight_Ref（ブザー） --- (@c #Buzzer)
+     * - bit 10 : < ユーザ定義 no.4 >
+     * - bit 11 : < ユーザ定義 no.5 >
+     * - bit 12 : < ユーザ定義 no.6 >
+     * - bit 13 : < ユーザ定義 no.7 >
+     * - bit 14 : < ユーザ定義 no.8 >
+     * - bit 15 : < ユーザ定義 no.9 >
+     * 
+     * @param   無し。
+     * @return  全ポートの設定状態。 \n
+     *          ビットの状態は下記のように定義されています。
+     *          - 0: OFF または 無効。
+     *          - 1: ON  または 点滅。
+     */
+    unsigned short getDoutAll();
+
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Doutの操作を行います （ポート指定）。
+     * 
+     * 引数 @a port で指定されたポートを， @a blinkingCyle の指定値に設定します。 \n
+     * 設定値により点滅動作も可能です。
+     * 
+     * 複数ポートを同時に操作することはできません。
+     * 
+     * @par 実行例: 
+     *            @code
+     * setDout( DoutUser1, DO_ON )
+     * 			  @endcode            
+     * @param[in] port  操作するポート番号を指定します。 \n
+     *                  \n
+     *                  ポートマップは以下の通りです。\n
+     *                  @ref DioConst_DoutPortMap_Ref        "Doutポートマップ" ,
+     *                  @ref DioConst_SignalLightPortMap_Ref "表示灯ポートマップ" , 
+     *                  に同じ内容の定数が定義されています。 \n
+     *                  \n
+     *                  - port 0  : 予約済み（操作無効）
+     *                  - port 1  : < ユーザ定義 no.1 >
+     *                  - port 2  : < ユーザ定義 no.2 >
+     *                  - port 3  : < ユーザ定義 no.3 >
+     *                  - port 4  : 予約済み（操作無効）
+     *                  - port 5  : @ref SignalLight_Ref（赤） --- @c #RedLight
+     *                  - port 6  : @ref SignalLight_Ref（黄） --- @c #YellowLight 
+     *                  - port 7  : @ref SignalLight_Ref（緑） --- @c #GreenLight
+     *                  - port 8  : @ref SignalLight_Ref（白） --- @c #WhiteLight
+     *                  - port 9  : @ref SignalLight_Ref（ブザー） --- @c #Buzzer
+     *                  - port 10 : < ユーザ定義 no.4 >
+     *                  - port 11 : < ユーザ定義 no.5 >
+     *                  - port 12 : < ユーザ定義 no.6 >
+     *                  - port 13 : < ユーザ定義 no.7 >
+     *                  - port 14 : < ユーザ定義 no.8 >
+     *                  - port 15 : < ユーザ定義 no.9 >
+     *                  .
+     *                  \n
+     *                  
+     * @param[in] blinkingCycle  ポートの ON / OFF / 点滅 を指定します。\n
+     *                           @ref DioConst_BlinkingCycle_Ref に以下を表す定数が定義されています。\n
+     *                           \n
+     *                           - 0x00000000 : OFF (Open)  < @c #DO_OFF >
+     *                           - 0xFFFFFFFF : ON  (Short) < @c #DO_ON  >
+     *                           - 上記以外 : 点滅 （ON / OFF 繰り返し） \n
+     *                             点滅周期を 10msec 単位で指定します （デューティ比 50\%）。\n
+     *                             （例） @a blinkingCycle = 100 の場合，点滅周期 1sec \n
+     * 
+     * @retval    "true  (=1)" 成功。
+     * @retval    "false (=0)" 失敗（異常発生）。\n
+     *                         port 0 等の無効ポートを操作した場合などに発生します。
+     */
+    boolean setDout(in octet port, in unsigned long blinkingCycle);
+
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  Doutの操作を行います （全ポート，同時操作）。
+     * 
+     * 各ポートをビットに割り当て，対応するビットが 1 のポートを一度に操作します。 \n
+     * このため，点滅を設定する事はできません。
+     * - 引数 @a on_ports  で指定された全ポート : 0xFFFFFFFF < @c #DO_ON  >（ショート）。
+     * - 引数 @a off_ports で指定された全ポート : 0x00000000 < @c #DO_OFF >（オープン）。
+     * 
+     * ポートマップは以下の通りです。\n
+     * @ref DioConst_DoutPortMap_Ref        "Doutポートマップ" ,
+     * @ref DioConst_SignalLightPortMap_Ref "表示灯ポートマップ" , 
+     * に同じ内容の定数が定義されています。 \n
+     * \n
+     * - bit 0  : 0 固定（予約済み）
+     * - bit 1  : < ユーザ定義 no.1 >
+     * - bit 2  : < ユーザ定義 no.2 >
+     * - bit 3  : < ユーザ定義 no.3 >
+     * - bit 4  : 0 固定（予約済み）
+     * - bit 5  : @ref SignalLight_Ref（赤） --- (@c #RedLight)
+     * - bit 6  : @ref SignalLight_Ref（黄） --- (@c #YellowLight) 
+     * - bit 7  : @ref SignalLight_Ref（緑） --- (@c #GreenLight)
+     * - bit 8  : @ref SignalLight_Ref（白） --- (@c #WhiteLight)
+     * - bit 9  : @ref SignalLight_Ref（ブザー） --- (@c #Buzzer)
+     * - bit 10 : < ユーザ定義 no.4 >
+     * - bit 11 : < ユーザ定義 no.5 >
+     * - bit 12 : < ユーザ定義 no.6 >
+     * - bit 13 : < ユーザ定義 no.7 >
+     * - bit 14 : < ユーザ定義 no.8 >
+     * - bit 15 : < ユーザ定義 no.9 >
+     * 
+     * @par 実行例
+     *             @ref SignalLight_Ref の赤・黄を点灯 ， 緑・白を消灯の場合。 \n
+     *             @code
+     * setDoutAll( (1 << RedLight)   | (1 << YellowLight),
+     *             (1 << GreenLight) | (1 << WhiteLight) )
+     *             @endcode
+     * @note       @a on_ports と @a off_ports の両方に同一ポートを指定した場合は，
+     *             戻り値 false を返し，Doutの操作を行いません。
+     * @param[in]  on_ports   0xFFFFFFFF < @c #DO_ON  > を設定するポート列。
+     * @param[in]  off_ports  0x00000000 < @c #DO_OFF > を設定するポート列。
+     * @retval     "true  (=1)"  成功。
+     * @retval     "false (=0)"  失敗（異常発生）。 下記条件で発生します。
+     *                           - @a on , @a off で同一ポートが指定された。
+     *                           - 無効(予約済み）ポートが指定された。
+     */
+    boolean setDoutAll(in unsigned short on_ports, in unsigned short off_ports);
+    
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  ロボットコントローラ内 IDLファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba5"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:42:50 2008 +0900"
+     * @return     無し。
+     */
+    void getIDLVersionString(out string revision, out string date);
+
+    /*!
+     *@ingroup  DioFuncGroup_Ref
+     * @brief  ロボットコントローラ内 ソースファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba6"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:52:50 2008 +0900"
+     * @return     無し。
+     */
+    void getSrcVersionString(out string revision, out string date);
+    
+	/*!
+	 * 本IDLファイル リポジトリリビジョン
+	 */
+    const string versionStringIDL = "41:9002b5f16c93";
+
+	/*!
+	 * 本IDLファイル リポジトリ最終更新日時
+	 */
+    const string versionDateIDL = "Mon Jan 26 20:26:16 2009 +0900";
+};
+
+#endif
+

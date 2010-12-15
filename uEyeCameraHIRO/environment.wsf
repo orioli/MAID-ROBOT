@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="Shift_JIS" standalone="yes" ?>
+<package>
+  <job id="environment">
+  <?job error="true" debug="true" ?>
+  <object id="objFs" progid="Scripting.FileSystemObject" />
+  <script language="VBScript">
+  <![CDATA[
+  Set WshShell=WScript.CreateObject("WScript.Shell")
+  Set WshEnvironment=WshShell.Environment("User")
+  Set objTs=objFs.OpenTextFile("env.dat",1,True)
+  Do While Not objTs.AtEndOfStream
+    aryDat=Split(objTs.readLine,"=")
+    If Mid(aryDat(0), 1, 1)<>"#" Then
+      If aryDat(0)="Path" Then
+        WshEnvironment.Item(aryDat(0))=WshShell.ExpandEnvironmentStrings("%Path%") & ";" & aryDat(1)
+      Else
+        WshEnvironment.Item(aryDat(0))=aryDat(1)
+      End If
+    End If
+  Loop
+  WScript.Echo "環境変数を設定しました"
+  ]]>
+  </script>
+  </job>
+</package>

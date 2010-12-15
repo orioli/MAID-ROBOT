@@ -1,0 +1,910 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      visionServer.idl
+ * @brief     SP-02用視覚サーバ インターフェース 定義ファイル
+ * 
+ */
+#ifndef __VISIONSERVER_IDL__
+#define __VISIONSERVER_IDL__
+
+#include "coordServer.idl"
+
+/*!
+ * @brief 視覚 インターフェース
+ */
+interface visionServer
+{
+    /*!
+     *@addtogroup  visionServerGroup_Ref  visionServer
+     * @brief 視覚サーバ #visionServer
+     */
+    
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // Type Definitions
+    //
+    
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     *@addtogroup  visionServer_TypeRef  Type Definitions
+     * @{
+     * @brief   各箇所で使用する型宣言です。
+     */
+
+    /*!
+     * @brief 要素数 3 の float型（IEEE単精度）配列。
+     *
+     * 例： <tt> (x, y, z) </tt>
+     */
+    typedef float FloatArray3[3];
+
+    /*!
+     * @brief @ref FloatArray3 型の可変長配列。
+     *
+     * 例： <tt> ( (x1, y1, z1), (x2, y2, z2), ... ) </tt>
+     */
+    typedef sequence<FloatArray3> FloatArray3Seq;
+
+    /*!
+     * @brief unsigned short 型（16bit）の可変長配列。
+     *
+     * 例： <tt> ( 0, 1, ... ) </tt>
+     */
+    typedef sequence<unsigned short> UShortSeq;
+
+    /*!
+     * @brief string 型の可変長配列。
+     *
+     * 例： <tt> ( "abc", "012", ... ) </tt>
+     */
+    typedef sequence<string> StringSeq;
+    
+    /*!
+     * @brief 1枚の画像を格納する octet 型（8bit）の可変長配列。
+     *
+     * 例： <tt> ( 0x00, 0x01, ... ) </tt>
+     */
+    typedef sequence<octet> ImageSeq;
+    
+    /*! @} */
+
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for grabImages(), etc.
+    //
+
+    /*!
+     *@ingroup     visionServerGroup_Ref
+     *@addtogroup  visionServerConst_CameraNumberRef  Camera Number Const. values
+     * @{
+     * @brief  @c grabImages() 等において，カメラ番号を指定する際に使用します。
+     * 
+     * 数値を直接入力できます。
+     */
+    const octet LHeadEye = 0; ///< 頭部カメラの左目
+    const octet RHeadEye = 1; ///< 頭部カメラの右目
+    const octet LHandEye = 2; ///< 左腕のハンドカメラ
+    const octet RHandEye = 3; ///< 右腕のハンドカメラ
+    /*! @} */
+
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for calibrationHeadStereoCamera()
+    //
+
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for getAllCameraStatus()
+    //
+
+    /*!
+     *@ingroup     visionServerGroup_Ref
+     *@addtogroup  visionServerConst_CameraStateRef  Camera State Const. values
+     * @{
+     * @brief  @c getAllCameraStatus() において，カメラ状態を判断する際に使用します。
+     * 
+     * 判断処理の実装をわかりやすくするために用意しています。 \n
+     * 数値と直接比較・判断できます。
+     */
+    const unsigned short CameraStateInitFailure   = 0x0001; ///< カメラデバイス初期化失敗。
+    const unsigned short CameraStateDisabled      = 0x0002; ///< カメラデバイス無効。
+    const unsigned short CameraStateError         = 0x0004; ///< カメラデバイス異常発生。
+    const unsigned short CameraStateCalibFailure  = 0x0008; ///< キャリブレーション失敗。
+    const unsigned short CameraStateCalibrating   = 0x0010; ///< キャリブレーション中。
+    const unsigned short CameraStateCapturing     = 0x0020; ///< 撮像中。
+    /*! @} */
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for getStatus/command-status
+    //
+
+    /*!
+     *@ingroup     visionServerGroup_Ref
+     *@addtogroup  visionServerConst_getStatusRef  Status Infomations
+     * @{
+     * @brief      @c getStatus() および各コマンドの引数・戻り値の判断に使用します。
+     * 
+     * 判断処理の実装をわかりやすくするために用意しています。 \n
+     * 数値と直接比較・判断できます。
+     */
+
+    /*!
+     * 視覚サーバの初期化中。 \n
+     * @c getStatus() の戻り値が 0 になるまでお待ちください。 \n
+     * 通常は，CORBA接続可能になってから 100msec以内に，本フラグはOFFになります。
+     */
+    const unsigned long InitializationStage = 0x00000001;
+
+    /*!
+     * Busyエラー。 \n
+     * 下記の場合に発生します。
+     * - 以下の状態でカメラキャリブレーションを開始しようとした。
+     *   - カメラデバイス使用中。
+     *   - ロボット動作中。
+     *   .
+     * - カメラキャリブレーション中，ロボット状態に以下の変更が発生した。
+     *   - 腰・首軸の変更。
+     *   - ハンドオフセット変更。
+     *   - 保護停止の発生。
+     *   - @ref coordServer への接続切れ。
+     */
+    const unsigned long BusyError = 0x00000002;
+
+    /*!
+     * パラメータ無効エラー。 \n
+     * 無効なパラメータ（引数）が指定されました。 \n
+     * パラメータを変更してください。
+     */
+    const unsigned long ParameterError = 0x00000004;
+
+    /*!
+     * キャリブレーションエラー。 \n
+     * キャリブレーション開始または実行中に，下記の状態の場合に発生します。
+     * - ロボットが動作中。
+     * - ロボットの状態（腰・首軸，ハンドオフセット）が変更された。
+     * - 保護停止がかかっている。
+     */
+    const unsigned long CalibrationError = 0x00000010;
+
+    /*!
+     * カメラキャリブレーション誤差レベル 許容外。 \n
+     * 下記の場合に発生します。
+     * - キャリブレーション計算に失敗した。
+     * - キャリブレーション結果の誤差レベルが，許容値（ユーザ指定）を超えた。
+     * .
+     * マーカ・システム等の確認，場合によっては許容値の引き上げを行う必要があります。
+     */
+    const unsigned long CalibrationErrorLevelOver = 0x00000020;
+
+    /*!
+     * マーカ認識・補正失敗。 \n
+     * マーカモデルを認識・補正できませんでした。 \n
+     */
+    const unsigned long MarkerRecognitionError = 0x00000040;
+
+    /*!
+     * coordServer 接続失敗エラー。 \n
+     * coordServer へ接続できませんでした。
+     *
+     * ロボット動作を伴うコマンドは実行できなくなります。 \n
+     * 以下の項目が正常であることを確認してください。
+     * - ロボットコントローラの動作状態
+     * - ロボットコントローラと視覚サーバ間のLANケーブル接続
+     */
+    const unsigned long CoordServerConnectionFailure = 0x00010000;
+
+    /*!
+     * カメラシステムエラー。 \n
+     * カメラを認識できませんでした。 \n
+     * カメラ接続を確認後，visionServerを再起動してください。
+     */
+    const unsigned long CameraSystemError = 0x00020000;
+
+    /*!
+     * HALCON ライセンス認証エラー。\n
+     * 起動時の HALCON ライセンス認証に失敗した時に発生します。 \n
+     * HALCONライセンスキー（USBドングル）の差し込み確認後，visionServerを再起動してください。
+     */
+    const unsigned long HalconLicenseError = 0x00040000;
+
+    /*!
+     * HALCON オペレータエラー。\n
+     * HALCON オペレータ実行時にエラーが発生しました。 \n
+     * オペレータに与えたパラメータの確認，正しい場合はカメラキャリブレーションの再実施を行ってください。
+     */
+    const unsigned long HalconError = 0x00080000;
+
+    /*!
+     * その他のエラー。
+     * 
+     * マーカモデル登録時のパスナンバーと @ref coordServer のパスナンバーが一致しない場合などに発生します。
+     * 
+     * 想定外のエラー（サーバ内部におけるパラメータファイルの書き込み失敗など）でも発生します。
+     */
+    const unsigned long OtherError = 0x01000000;
+
+    /*! @} */
+
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for getStatus/command-status
+    //
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief 視覚サーバをCORBA経由でシャットダウンします。
+     *
+     * サーバの電源を切ります。反応するまで数秒かかる場合があります。 \n
+     * 電源OFFしない場合は，電源ボタンを 4秒以上押してください。
+     * 
+     * @param  無し。
+     * @return 無し。
+     */
+    oneway void shutdown();
+
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   頭部ステレオカメラのキャリブレーションを行います。
+     *
+     * 終了またはエラーによる中断まで，制御は返されません。
+     *
+     * @brief   頭部ステレオカメラのキャリブレーションを行います。
+     *
+     * 終了またはエラーによる中断まで，制御は返されません。
+     *
+     * 引数 @a arm の値に応じて，@ref coordServer の 腕動作コマンド（角度補間）を使用します。
+     *
+     * 状態取得には，@c inMotion() または@c getAllCameraStatus() を使用してください。
+     * 
+     * @par 腕の挙動（マーカ側）:
+     *             内部的に，@a pos[0], @a pos[1], @a pos[2] および
+     *             @a round で指定される立方体を生成します。\n
+     *             その立方体の頂点に，手先基準点（ハンド取付ポイント）が移動します。 \n
+     *             手先姿勢は @a pos[3], @a pos[4], @a pos[5] となります。
+     * @par 腕の挙動（回避側）:
+     *             本コマンドでは腕の回避動作は行いません。\n
+     *             @a arm の値で指定された腕と干渉しないよう，事前に回避動作を実施してください。
+     *
+     * @attention  レンズには触らないでください。\n
+     *             ピント等がずれた場合，工場で内部設定値を再調整する必要があります。
+     * @attention  キャリブレーション中，@a hand で指定された手先のハンドオフセットは<tt>(0, 0, 0)</tt> になります。\n
+     *             ツメ先ではなく手先基準点の動作であることに注意してください。\n
+     *             キャリブレーション終了後，ハンドオフセットはキャリブレーション前の値に戻ります。
+     * @note       @ref coordServer の手先座標系として，以下の番号を使用します。
+     *             - @c #coordServer::RHand7 : 右腕クロスマークオフセット（キャリブレーション用，常時設定）。
+     *             - @c #coordServer::LHand7 : 左腕 〃 。
+     *
+     * @param[in]      arm          使用する腕。
+     *                               - 0x04 : 右腕(@c #coordServer::RIGHT_ARM)
+     *                               - 0x08 : 左腕(@c #coordServer::LEFT_ARM)
+     * @param[in]      pos          腕（手先基準点）の動作範囲の中心 [mm] および 動作姿勢 [deg]。 \n
+     *                              [形式] <tt> (x, y, z, r, p, w) </tt>
+     * @param[in]      round        腕の動作半径[mm]。
+     *                              - @c 0 以下の値を指定した場合は，
+     *                                @a status に @c #visionServer::ParameterError が返されます。
+     * @param[in]      percent      パーセントで指定する動作速度[%]。
+     *                              - 最大速度に対するパーセント値となります（@c 100 = 最大速度）。
+     *                              - @c 1% 未満 または @c 100% より大きな値を指定した場合は，
+     *                                @a coord_status に @c #coordServer::SpeedSpecifyError が返されます。
+     * @param[in, out] err_level    下記つの機能があります。<単位> ピクセル単位の平均エラー距離
+     *                              - [in] 許容誤差レベル。\n
+     *                                キャリブレーション誤差がこの値以下の場合をキャリブ成功と見なします。\n
+     *                                （暫定）@c 0.3 等の数値を入力してください。
+     *                              - [out] キャリブレーション誤差レベル。\n
+     *                                計算結果の誤差レベルです。
+     * @param[out]     status       下記の値が返されます。
+     *                              - エラー無し: \n
+     *                                @c 0x0
+     *                              - その他: \n
+     *                                @c getStatus() を参照してください。
+     * @param[out]     coord_status 本コマンド内で最後に実行された coordServerコマンドのout型引数@c status
+     *                              （値については@c coordServer::getStatus() を参照）が返されます。
+     * @return  実行に要した時間[sec]。\n
+     *          エラー時は負値が返されます。
+     */
+    float calibrateHeadStereoCamera(in octet arm, in coordServer::Position pos, 
+                                    in float round, in float percent, inout float err_level,
+                                    out unsigned long status, out unsigned long coord_status);
+
+    
+    //------------------------------------------------------------------------------------
+    
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   視覚サーバの状態を取得します。
+     *
+     * 現時点において，本コマンドで返される値は下記 5種類のみです。
+     * - @c #BusyError
+     * - @c #ParameterError
+     * - @c #CoordServerConnectionFailure
+     * - @c #HalconLicenseError
+     * - @c #CameraSystemError
+     * 
+     * 各動作コマンドにおいては，その他の状態も発生します。
+     * それらの状態は，各コマンドのout型引数または戻り値で返されます。
+     *
+     * @param   無し。
+     * @retval  0x00000000  正常動作中。 \n
+     *                      \n
+     * @retval  0x00000001  @copydoc InitializationStage \n
+     *                      <@c #InitializationStage> \n
+     *                      \n
+     * @retval  0x00000002  @copydoc BusyError \n
+     *                      <@c #BusyError> \n
+     *                      \n
+     * @retval  0x00000004  @copydoc ParameterError \n
+     *                      <@c #ParameterError> \n
+     *                      \n
+     * @retval  0x00000010  @copydoc CalibrationError \n
+     *                      <@c #CalibrationError> \n
+     *                      \n
+     * @retval  0x00000020  @copydoc CalibrationErrorLevelOver \n
+     *                      <@c #CalibrationErrorLevelOver> \n
+     *                      \n
+     * @retval  0x00000040  @copydoc MarkerRecognitionError \n
+     *                      <@c #MarkerRecognitionError> \n
+     *                      \n
+     * @retval  0x00010000  @copydoc CoordServerConnectionFailure \n
+     *                      <@c #CoordServerConnectionFailure> \n
+     *                      \n
+     * @retval  0x00020000  @copydoc CameraSystemError \n
+     *                      <@c #CameraSystemError> \n
+     *                      \n
+     * @retval  0x00040000  @copydoc HalconLicenseError \n
+     *                      <@c #HalconLicenseError> \n
+     *                      \n
+     * @retval  0x00080000  @copydoc HalconError \n
+     *                      <@c #HalconError> \n
+     *                      \n
+     * @retval  0x01000000  @copydoc OtherError \n
+     *                      <@c #OtherError> \n
+     *                      \n
+     */
+    unsigned long getStatus();
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   全カメラ状態を取得します。
+     *
+     * @param[out] status  カメラの詳細を返します。 \n
+     *                     カメラ番号順で状態値が可変長配列に入ります。 \n
+     *                     配列長は 「 使用予定カメラの数 」 となります。
+     *                     - @a status = [ カメラ no. 1 の状態，カメラ no. 2 の状態，... ]
+     *                     .
+     *                     各配列値の内容は下記の通りです （bit ON で有効）。
+     *                     - <bit 割り当て>
+     *                       - bit 0 : @copydoc CameraStateInitFailure \n
+     *                         <@c #CameraStateInitFailure>
+     *                       - bit 1 : @copydoc CameraStateDisabled \n
+     *                         <@c #CameraStateDisabled>
+     *                       - bit 2 : @copydoc CameraStateError \n
+     *                         <@c #CameraStateError>
+     *                       - bit 3 : @copydoc CameraStateCalibFailure \n
+     *                         <@c #CameraStateCalibFailure>
+     *                       - bit 4 : @copydoc CameraStateCalibrating \n
+     *                         <@c #CameraStateCalibrating>
+     *                       - bit 5 : @copydoc CameraStateCapturing \n
+     *                         <@c #CameraStateCapturing>
+     *                       .
+     *                     - <例>
+     *                       - 0x0001 : カメラデバイス初期化失敗 （ケーブル抜け等）。
+     *                       - 0x0002 : カメラデバイス無効。
+     *                       - 0x0030 : キャリブレーションにおける撮像中。
+     * 
+     * @retval  "true  (=1)" 初期化失敗のカメラが存在しない。
+     * @retval  "false (=0)" 上記以外。
+     */
+    boolean getAllCameraStatus(out UShortSeq status);
+
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   カメラの設定を変更します。
+     *
+     * 明度などのカメラ設定を変更できます。
+     *
+     * @par  設定値の種類（項目と値）:
+     *       - @c "bayer_gain_auto" \n
+     *         カメラのオートホワイトバランスの有効/無効を設定します。 \n
+     *         <値> <tt> "enable" or "disable" </tt>
+     *       - @c "brightness" \n
+     *         カメラの明度を設定します。 \n
+     *         <値> <tt> "-255" ~ "255" </tt>
+     *       - @c "contrast" \n
+     *         カメラのコントラストを設定します。 \n
+     *         <値> <tt> "-127" ~ "127" </tt>
+     *       - @c "hue" \n
+     *         カメラの色合いを設定します。 \n
+     *         <値> <tt> "-360" ~ "360" </tt>
+     *       - @c "saturation" \n
+     *         カメラの彩度を設定します。 \n
+     *         <値> <tt> "-255" ~ "255" </tt>
+     *       - @c "sharpness" \n
+     *         カメラのシャープネスを設定します。 \n
+     *         ［値］ "0" ~ "30"
+     *       - @c "gamma" \n
+     *         カメラのガンマ値を設定します。 \n
+     *         ［値］ "0" ~ "200"
+     *       - @c "global_gain" \n
+     *         カメラのグローバルゲインを設定します。 \n
+     *         <値> "0" ~ "100"
+     *       - @c "exposure_time" \n
+     *         カメラのシャッタースピードを設定します。 \n
+     *         <値> <tt> "0" ~ "3000" </tt>
+     *         - 15fps : "1800"
+     *         - 10fps : "1585"
+     *         - 30fps : "528"
+     *         - （注意）蛍光灯を使用されている場合，輝度変動を防ぐため，数値変更が必要となる場合があります。
+     *       - @c "half_clock" \n
+     *         カメラのハーフクロックの有効/無効を設定します。 \n
+     *         <値> <tt> "enable" or "disable" </tt>
+     *       - <tt>"sromid_no1" ~ "sromid_no7" </tt> \n
+     *         カメラにユーザ定義番号を記憶させます。 \n
+     *         アドレス 1 から 7 の 7 項目を利用できます。 \n
+     *         <値> <tt> "0" ~ "255" </tt>
+     *
+     * @param[in]  camera_no     取得したい画像に対応する「カメラ番号 - 1」を指定します。 \n
+     *                           [範囲] 0~7
+     * @param[in]  setting_list  設定文字列リスト。
+     *                           - [形式] <tt> ( "項目名 値", "項目名 値", ...) </tt>
+     *                           - [例] <tt> ( "global_gain 35", "sromid_no1 200", ...) </tt>
+     * @retval   true   成功。
+     * @retval   false  失敗。@a setting_list を確認してください。
+     */
+    boolean setCameraSettings(in octet camera_no, in StringSeq setting_list);
+    
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   カメラの設定を取得します。
+     *
+     * 明度などのカメラ設定を取得できます。
+     *
+     * @par  設定値の種類（項目と値）:
+     *       - @c "all" \n
+     *         以下の設定を全て取得します。 \n
+     *         他の項目（@c "gamma"）などと同時に使用しても問題ありません（全て取得になります）。
+     *       - @c "bayer_gain_auto" \n
+     *         カメラのオートホワイトバランスの有効/無効を取得します。
+     *       - @c "brightness" \n
+     *         カメラの明度を取得します。
+     *       - @c "contrast" \n
+     *         カメラのコントラストを取得します。
+     *       - @c "hue" \n
+     *         カメラの色合いを取得します。
+     *       - @c "saturation" \n
+     *         カメラの彩度を取得します。
+     *       - @c "sharpness" \n
+     *         カメラのシャープネスを取得します。 \n
+     *       - @c "gamma" \n
+     *         カメラのガンマ値を取得します。 \n
+     *       - @c "global_gain" \n
+     *         カメラのグローバルゲインを取得します。
+     *       - @c "exposure_time" \n
+     *         カメラのシャッタースピードを取得します。
+     *       - @c "half_clock" \n
+     *         カメラのハーフクロックの有効/無効を取得します。
+     *       - <tt>"sromid_no1" ~ "sromid_no7" </tt> \n
+     *         カメラに記録されたユーザ定義番号を取得します。 \n
+     *         アドレス 1 から 7 の 7 項目を指定できます。
+     *
+     * @param[in]  camera_no   取得したい画像に対応する「カメラ番号 - 1」を指定します。 \n
+     *                         [範囲] 0~7
+     * @param[in]  query_list  取得したい設定項目の文字列リスト。
+     *                         - [形式] <tt> ( "項目名", "項目名", ...) </tt>
+     *                         - [例] <tt> ( "global_gain", "sromid_no1", ...) </tt>
+     * @param[out] value_list  取得した設定値の文字列リスト。
+     *                         - <形式> <tt> ( "項目名 結果", "項目名 結果", ...) </tt>
+     *                         - <例1> <tt> ( "global_gain 35", "sromid_no1 200", ...) </tt>
+     *                         - <例2> <tt> ( "dummy <Invalid>", ...) </tt>
+     * @retval   true   成功。
+     * @retval   false  失敗。@a query_list を確認してください。
+     */
+    boolean getCameraSettings(in octet camera_no, in StringSeq query_list, out StringSeq value_list);
+    
+    
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   キャプチャー画像から複数クロスマークの 3次元座標群を算出します。
+     *
+     * 2つのカメラからキャプチャーを行い，ステレオ処理を実行します。 \n
+     * 検出できたクロスマーク全ての 3次元座標群を算出します。
+     *
+     * @note       本コマンドでは @c #MarkerRecognitionError は発生しません。\n
+     *             認識されたクロスマークの個数を確認したい場合は，
+     *             @a xyz_list のサイズ（リスト長）で判断してください。
+     * @param[out] xyz_list  3次元座標のリスト。 \n
+     *                       [形式] <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @retval     0x0       成功。
+     * @retval     その他    @c getStatus() を参照してください。
+     */
+    unsigned long getCrossmark3DPositions(out FloatArray3Seq xyz_list);
+
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   指定されたカメラ（複数）により撮像します。
+     * 
+     * @a camera_list の複数ビットが 1 の場合，対応するカメラから同時撮像を試みます。
+     *
+     * カメラによっては，複数同時撮像が行えない（画像が乱れる）場合があります。 \n
+     * 可否を事前に調査した上で，同時撮像を行ってください。
+     * 
+     * @param[in]  camera_list  取得したい画像に使用する/ されたカメラを指定します。
+     *                          - bit 0  : カメラ no. 1
+     *                          - bit 1  : カメラ no. 2
+     *                          - bit 2  : カメラ no. 3
+     *                          - bit 3  : カメラ no. 4
+     *                          - bit 4  : カメラ no. 5
+     *                          - bit 5  : カメラ no. 6
+     *                          - bit 6  : カメラ no. 7
+     *                          - bit 7  : カメラ no. 8
+     *                          .
+     *                          \n
+     *                          ＜例: カメラ no.1 および no.2 を同時に指定したい場合＞
+     *                          @code
+     * grabImages( 1 << 0 | 1 << 1 );
+     *                          @endcode
+     * @retval  0x0     成功。
+     * @retval  その他  @c getStatus() を参照してください。
+     */
+    unsigned long grabImages(in octet camera_list);
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   指定されたカメラの画像を取得（転送）します。
+     * 
+     * @param[in]  camera_no      取得したい画像に対応する「カメラ番号 - 1」を指定します。 \n
+     *                            ＜範囲＞ 0 ~ 「最大カメラ番号 - 1」
+     * @param[in]  image_type     画像の種類。
+     *                            - 0: 未補正。
+     *                            - 1: 歪み補正済み。
+     *                            - 2: 歪み補正済み，認識結果付き。 \n
+     *                              直前の認識コマンドによる結果のみが重ね合わされます。
+     * @param[in]  compress_level 画像圧縮レベル。
+     *                            - -1: BMP
+     *                            - 0~99: JPEG（JPEGの品質レベル : 0 が最大圧縮，99 が最小圧縮） \n
+     *                              ＜補足＞ 暫定的に，入力値に応じてレベルを選択しています。
+     *                              -  0~20 : 品質レベル 20
+     *                              - 21~40 : 品質レベル 40
+     *                              - 41~60 : 品質レベル 60
+     *                              - 61~80 : 品質レベル 80
+     *                              - 81~99 : 品質レベル 100
+     *                            - 100: PNG
+     * @param[in]  is_capture     撮像の有無を指定します。
+     *                            - false : 撮像しません。バッファに残っている画像が送信されます。
+     *                            - true  : 撮像します。
+     * @param[out] image_out      指定されたカメラの画像データ。
+     * @retval  0x0     成功。
+     * @retval  その他  @c getStatus() を参照してください。
+     */
+    unsigned long getImage(in octet camera_no, in octet image_type, in short compress_level,
+                           in boolean is_capture, out ImageSeq image_out);
+    
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief マーカモデルを設定します（同一形状マーカの登録は不可）。
+     *
+     * 点対称または線対称では無いモデル形状を指定してください。 \n
+     * モデルの座標系は，ワールド座標系（WCS）における値限定です。
+     *
+     * 下記の場合に設定失敗となります。
+     * - @a marker_no にシステム定義領域の座標系no. を指定した。
+     * - @a cs で指定される親座標系no. が 0 (WCS) では無い。
+     * - @a xyz_list のリスト長が 3 未満。
+     * - モデル形状が点対称・線対称である。
+     * - 同等のモデル形状が既に他の番号で登録されている。
+     *
+     * 腰を回した複数箇所でのワーク把持など，同一モデルを別番号で登録したい場合は，
+     * @c setMarkerModelEx() を使用してください。
+     *
+     * @param[in]  marker_no    マーカモデル番号。
+     * @param[in]  xyz_list     マーカの3次元座標リスト。 \n
+     *                          <形式> <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @param[in]  err_limit    @c searchMarkerModel() で判断に使用する誤差しきい値。
+     * @param[in]  corr_limit   モデル補正時の補正しきい値。
+     * @param[in]  cs_name      座標系の名前 \n
+     *                          ユーザ定義領域では自由に名前を付けられます。
+     * @param[in]  base_cs_no   元となる座標系（親座標系）の番号。
+     *                          - 現時点では， @c #coordServer::WorldCS 以外は指定できません。
+     * @param[in]  cs_position  @a base_cs_no 座標系に対する位置・姿勢の変化量。
+     * @param[in]  pass_no      座標系の保護用パスナンバー。
+     * @retval     0x0          成功。
+     * @retval     その他       @c getStatus() を参照してください。
+     */
+    unsigned long setMarkerModel(
+            in octet marker_no, in FloatArray3Seq xyz_list,
+            in float err_limit, in float corr_limit,
+            in string cs_name, in octet base_cs_no, in coordServer::Position cs_position,
+            in unsigned long pass_no);
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief マーカモデルを設定します。
+     *
+     * 点対称または線対称では無いモデル形状を指定してください。 \n
+     * モデルの座標系は，ワールド座標系（WCS）における値限定です。
+     *
+     * 下記の場合に設定失敗となります。
+     * - @a marker_no にシステム定義領域の座標系no. を指定した。
+     * - @a cs で指定される親座標系no. が 0 (WCS) では無い。
+     * - @a xyz_list のリスト長が 3 未満。
+     * - モデル形状が点対称・線対称である。
+     *
+     * @param[in]  marker_no    マーカモデル番号。
+     * @param[in]  xyz_list     マーカの3次元座標リスト。 \n
+     *                          <形式> <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @param[in]  err_limit    @c searchMarkerModel() で判断に使用する誤差しきい値。
+     * @param[in]  corr_limit   モデル補正時の補正しきい値。
+     * @param[in]  cs_name      座標系の名前 \n
+     *                          ユーザ定義領域では自由に名前を付けられます。
+     * @param[in]  base_cs_no   元となる座標系（親座標系）の番号。
+     *                          - 現時点では， @c #coordServer::WorldCS 以外は指定できません。
+     * @param[in]  cs_position  @a base_cs_no 座標系に対する位置・姿勢の変化量。
+     * @param[in]  pass_no      座標系の保護用パスナンバー。
+     * @param[in]  accept_same  同一形状マーカの多重登録の有効/無効を指定します。
+     *                          - true : 有効。
+     *                          - false: 無効。\n
+     *                            登録しようとするマーカ形状が既に別マーカ番号で登録済みの場合，
+     *                            登録を認めません（登録失敗）。
+     * @retval     0x0          成功。
+     * @retval     その他       @c getStatus() を参照してください。
+     */
+    unsigned long setMarkerModelEx(
+            in octet marker_no, in FloatArray3Seq xyz_list,
+            in float err_limit, in float corr_limit,
+            in string cs_name, in octet base_cs_no, in coordServer::Position cs_position,
+            in unsigned long pass_no, in boolean accept_same);
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief マーカモデルを取得します。
+     *
+     * @param[in]  marker_no    マーカモデル番号。
+     * @param[out] xyz_list     マーカの3次元座標リスト。 \n
+     *                          [形式] <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @param[out] err_limit    @c searchMarkerModel() で判断に使用する誤差しきい値。
+     * @param[out] corr_limit   モデル補正時の補正しきい値。
+     * @param[out] cs_name      座標系の名前。
+     * @param[out] base_cs_no   元となる座標系（親座標系）の番号。
+     * @param[out] cs_position  @a base_cs_no 座標系に対する位置・姿勢の変化量。
+     * @param[out] pass_no      座標系の保護用パスナンバー。
+     * @retval     0x0          成功。
+     * @retval     その他       @c getStatus() を参照してください。
+     */
+    unsigned long getMarkerModel(
+            in octet marker_no,
+            out FloatArray3Seq xyz_list,
+            out float err_limit, out float corr_limit,
+            out string cs_name, out octet base_cs_no, out coordServer::Position cs_position,
+            out unsigned long pass_no);
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   マーカモデルを認識し，@ref coordServer の座標系データを更新します。
+     *
+     * @c #RHeadEye, @c #LHeadEye により撮像し，視野角にあるマーカを認識します。\n
+     * その後， @c setMarkerModel() で事前に設定した誤差しきい値以下のマーカモデルを検索します。
+     *
+     * 下記の場合は @c #MarkerRecognitionError が返されます。
+     * - 検索に失敗した（誤差しきい値を超えた）。
+     * - 検索に成功したが，結果（マーカモデル）が複数存在する。
+     * - 撮像・認識したマーカモデルの形状が，点対称または線対称の場合。
+     *
+     * @param[in]  marker_no      マーカ番号。
+     * @param[in]  mov_spd        首軸の動作速度パーセント [%]。
+     *                            - 0 : 首軸（視点）固定となります。
+     * @param[in]  is_mov         各マーカ毎への視線移動（首軸動作）の有無。
+     *                            - true : 移動します。 \n
+     *                              マーカモデルが画角に入らない場合に指定してください。
+     *                            - false: 移動しません。 \n
+     *                              想定されるマーカモデルの中心に視点を設定した後は，首軸固定です。
+     * @param[out] err_score      認識時に算出した誤差値。 \n
+     *                            モデルと実物との相違量を意味します。
+     * @param[out] xyz_list       認識したマーカの3次元座標リスト。 \n
+     *                            [形式] <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @param[out] coord_status   @c coordServer::moveTarget() の値が返されます。
+     * @retval     0x0            成功。
+     * @retval     その他         @c getStatus() を参照してください。
+     */
+    unsigned long searchMarkerModel(in octet marker_no, in float mov_spd, in boolean is_mov,
+                                    out float err_score, out FloatArray3Seq xyz_list,
+                                    out unsigned long coord_status);
+
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   マーカモデルの形状補正を行います。
+     * 
+     * 事前に登録・認識済みのマーカモデルに対し，
+     * 形状のみをカメラ等により取得した実際のマーカ形状（3次元座標リスト）に置き換えることで，
+     * マーカ形状の補正を行います。
+     * 
+     * 認識済みのマーカモデルの位置・姿勢を利用することで，実際の座標系（WCS）をマーカ座標系に
+     * 変換します。 \n
+     * マーカの差し替え前後において，マーカ貼り付け対象（ティーチングポイント）がずれないよう，
+     * 注意して作業を行うことにより，動作パターンの変更が不要になります。
+     * 
+     * 下記の場合は @c #MarkerRecognitionError が返されます。
+     * - @a xyz_list の形状が，点対称または線対称である。
+     *
+     * 下記の場合は @c #ParameterError が返されます。
+     * - @a xyz_list のリスト長が 3 未満。
+     *
+     * なお，他のモデル番号のデータとの照合（形状同一判定）は行われません。
+     *
+     * @par 手順
+     *     -# @c setMarkerModelEx() 等により，変更したいマーカモデルをセットします。
+     *     -# マーカを視野内に配置した後，@c searchMarkerModel() により，そのマーカを認識させます。
+     *     -# 新しいマーカを貼り付けた後，@c getCrossmark3DPositions() により，
+     *        新しいマーカの3次元座標リストを取得してください。 \n
+     *        その際，以下のことに注意してください。
+     *        - マーカ取り付け対象の位置・姿勢を変化させない。
+     *        - 必要なクロスマークのみ認識させる（@c getImage() により確認）。
+     *        .
+     *     -# 取得した3次元座標リストを本コマンドに与えることで，形状が補正されます。
+     * 
+     * @param[in]  marker_no    マーカ番号。
+     * @param[in]  xyz_list     実際のマーカの3次元座標リスト。 \n
+     *                          [形式] <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @retval     0x0          成功。
+     * @retval     その他       @c getStatus() を参照してください。
+     */
+    unsigned long correctMarkerModelShape(in octet marker_no, in FloatArray3Seq xyz_list);
+
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   マーカモデルの位置・姿勢補正を行います。
+     * 
+     * 動作パターンの位置・姿勢のずれをダイレクトティーチングで把握し，
+     * その情報を元にモデル自体の位置・姿勢を実際にあわせて補正します。
+     * 
+     * 下記の場合は @c #MarkerRecognitionError が返されます。
+     * - 検索に失敗した（誤差しきい値を超えた）。
+     * - 検索に成功したが，結果（マーカモデル）が複数存在する。
+     * - @a pattern_xyz または @a teaching_xyz の形状が，点対称または線対称の場合。
+     *
+     * 下記の場合は @c #ParameterError が返されます。
+     * - @a pattern_xyz および @a teaching_xyz のリスト長が一致しない。
+     * - @a pattern_xyz または @a teaching_xyz のリスト長が 3 未満。
+     *
+     * @par 手順
+     *     -# @c setMarkerModelEx() 等により，変更したいマーカモデルをセットします。
+     *     -# @c searchMarkerModel() により，マーカモデルを認識します。
+     *     -# 認識したマーカを基準として，（補正用）動作パターンを実行し，
+     *        各ポイント毎にダイレクトティーチングを行います。 \n
+     *        その時の動作パターンおよびティーチング結果のツメ先位置を記録しておきます。
+     *     -# 記録したデータを本コマンドに与えることで，モデルの位置・姿勢が補正されます。
+     * 
+     * @param[in]  marker_no    マーカ番号。
+     * @param[in]  pattern_xyz  動作パターンのツメ先3次元座標リスト。 \n
+     *                          [形式] <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @param[in]  teaching_xyz ティーチング結果のツメ先3次元座標リスト。 \n
+     *                          [形式] <tt> ( (x1, y1, z1), (x2, y2, z2), ...) </tt>
+     * @param[out] err_score    補正計算時に算出した誤差値。 \n
+     *                          動作パターンとティーチング結果との相違量を意味します。
+     * @param[out] corr_pos     マーカモデルの補正量（位置・姿勢）。 \n
+     *                          [形式] <tt> ( x, y, z, r, p, w ) </tt>
+     * @retval     0x0          成功。
+     * @retval     その他       @c getStatus() を参照してください。
+     */
+    unsigned long correctMarkerModelPosition(
+                in octet marker_no,
+                in FloatArray3Seq pattern_xyz, in FloatArray3Seq teaching_xyz,
+                out float err_score, out coordServer::Position corr_pos );
+
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   視覚サーバの動作状態取得 / 動作終了待ちを行ないます。
+     * 
+     * 下記 2種類の機能があります。
+     * - 指定カメラが動作中であるか否かを調べる。
+     * - 動作が終了するまで待つ（制御を返さない）。
+     * 
+     * 無効なカメラ番号（@c 0x00 など）を指示された場合，そのカメラ番号は無視します。
+     * 
+     * @param[in, out] camera_list カメラ番号を指定 / 返されます。
+     *                             - <in / out> \n
+     *                               - [in ] カメラ番号を指定します。
+     *                               - [out] 指定されているカメラ番号のうち，
+     *                                       動作中のカメラ番号の合計値が返されます。
+     *                               .
+     *                             - <bit 割り当て>
+     *                               - bit 0  : カメラ no. 1
+     *                               - bit 1  : カメラ no. 2
+     *                               - bit 2  : カメラ no. 3
+     *                               - bit 3  : カメラ no. 4
+     *                               - bit 4  : カメラ no. 5
+     *                               - bit 5  : カメラ no. 6
+     *                               - bit 6  : カメラ no. 7
+     *                               - bit 7  : カメラ no. 8
+     *                               .
+     *                             カメラ番号が複数に渡る場合は，加算した数値を指定してください。 \n
+     *                             <例 : カメラ no.1 および no.2 を同時に指定したい場合>
+     *                             @code
+     * inMotion( 1 << 0 | 1 << 1, true );
+     *                             @endcode
+     *                             \n
+     *                             指定番号のカメラが動作していない場合，戻り値は 0x0 になります。 \n
+     *                             \n
+     * @param[in]      wait        動作終了待ち機能の使用/未使用を選択します。
+     *                             - true ( =1) : 動作終了するまで制御を返しません。 \n
+     *                               @c #coordServer::ProtectiveStopState 状態の場合，
+     *                               ロックが解除されるまで制御を返さない場合があります。 \n
+     *                               必要に応じて，ロック状態監視・解除プログラムを別途用意し，
+     *                               ロック解除を行ってください。
+     *                             - false (=0) : 動作終了を待たずに制御を返します。
+     * @retval         "true  (=1)" 動作中。
+     * @retval         "false (=0)" 停止中。
+     */
+    boolean inMotion(inout octet camera_list, in boolean wait);
+
+
+    //------------------------------------------------------------------------------------
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   視覚サーバ内 IDLファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba5"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:42:50 2008 +0900"
+     * @return     無し。
+     */
+    void getIDLVersionString(out string revision, out string date);
+
+    /*!
+     *@ingroup  visionServerGroup_Ref
+     * @brief   視覚サーバ内 ソースファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba6"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:52:50 2008 +0900"
+     * @return     無し。
+     */
+    void getSrcVersionString(out string revision, out string date);
+
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "50:405874bb37de";
+
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "Wed Jan 28 16:13:50 2009 +0900";
+
+
+
+
+}; // end of interface visionServer
+
+#endif
+

@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clib1DLL", "clib1DLL.vcproj", "{C7F75502-DF68-45C4-9F69-68969BF140E3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test0", "test0\test0.vcproj", "{7E6EF1CA-DE3B-4EC9-9209-5A0FD15F8543}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C7F75502-DF68-45C4-9F69-68969BF140E3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C7F75502-DF68-45C4-9F69-68969BF140E3}.Debug|Win32.Build.0 = Debug|Win32
+		{C7F75502-DF68-45C4-9F69-68969BF140E3}.Release|Win32.ActiveCfg = Release|Win32
+		{C7F75502-DF68-45C4-9F69-68969BF140E3}.Release|Win32.Build.0 = Release|Win32
+		{7E6EF1CA-DE3B-4EC9-9209-5A0FD15F8543}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E6EF1CA-DE3B-4EC9-9209-5A0FD15F8543}.Debug|Win32.Build.0 = Debug|Win32
+		{7E6EF1CA-DE3B-4EC9-9209-5A0FD15F8543}.Release|Win32.ActiveCfg = Release|Win32
+		{7E6EF1CA-DE3B-4EC9-9209-5A0FD15F8543}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

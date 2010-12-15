@@ -1,0 +1,47 @@
+// -*- mode: idl; indent-tabs-mode: t; tab-width: 4; c-basic-offset: 4; -*-
+#ifndef __HRPCONTROLLER_IDL__
+#define __HRPCONTROLLER_IDL__
+
+#include "OpenHRPCommon.idl"
+//#include "ViewSimulator.idl" //comment out for HALCON. 080422
+
+module OpenHRP {
+
+	interface CommandReceiver
+	{
+		void sendMsg(in string msg);
+	};
+	
+	interface Plugin : CommandReceiver
+	{
+		void start();
+		void stop();
+	};
+	
+	interface PluginManager : CommandReceiver
+	{
+		void load(in string name);
+		Plugin create(in string pclass, in string name, in string args);
+		StringSequence getPluginNames();
+	};
+	
+	/* comment out for HALCON. 080422
+	struct RobotState
+	{
+		DblSequence				angle;
+		DblSequence				velocity;
+		DblSequence				torque;
+		sequence<DblSequence6>	force;
+		sequence<DblSequence3>	rateGyro;
+		sequence<DblSequence3>	accel;
+		sequence<DblSequence9>	attitude;
+		DblSequence3			zmp;
+		DblSequence3			basePos;
+		DblSequence9			baseAtt;
+		sequence<ImageData> 	image;
+		LongSequence			dio;
+	};
+	*/
+};
+
+#endif

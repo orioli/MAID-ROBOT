@@ -1,0 +1,8 @@
+#include "HRPcontroller.idl"
+
+interface LoggerPlugin : OpenHRP::Plugin
+{
+  void add(in string pname);
+  void save(in string fname);
+};
+

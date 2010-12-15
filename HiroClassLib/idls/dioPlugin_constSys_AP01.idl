@@ -1,0 +1,75 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      dioPlugin_constSys_AP01.idl
+ * @brief     dioPluginインターフェース システム定数定義ファイル（AP-01 Port 64 DIO用）
+ *
+ *
+ * @todo      まだ書きかけです。続きを書いてください。
+ */
+
+#ifndef __DIOPLUGIN_CONSTSYS_AP01__IDL__
+#define __DIOPLUGIN_CONSTSYS_AP01__IDL__
+
+#include "dioPlugin.idl"
+
+/*!
+ * @brief DIOインターフェース - システム定数（AP-01 Port 64 DIO用）
+ */
+interface dioPlugin_constSys_AP01
+{
+    /*!
+     *@addtogroup  DioConst_SystemStatePortMap_Ref  System State Portmap
+     * @ingroup DioConstGroup_Din_Ref
+     * @{
+     * @c getDin() にて ロボットの状態を判断する際に利用できます。\n
+     * 数値と直接比較できます。
+     */
+    const unsigned long long MotorPowerSupply  = 0x0000000000000002; ///< モーターパワー ON - RelaySignal
+    const unsigned long long SystemPowerSupply = 0x0000000000000008; ///< ロボットシステム電源 ON - RlyON
+    const unsigned long long PauseRightArm     = 0x0000000000040000; ///< 一旦停止中（右腕）
+    const unsigned long long PauseLeftArm      = 0x0000000000080000; ///< 一旦停止中（左腕）
+    const unsigned long long PauseChest        = 0x0000000000100000; ///< 一旦停止中（腰）
+    const unsigned long long PauseNeck         = 0x0000000000200000; ///< 一旦停止中（首）
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConst_SignalLightSetPortMap_Ref  Signal Light Portmap
+     * @ingroup DioConstGroup_Dout_Ref
+     * @{
+     * @c setDout() にて，@ref SignalLight_Ref "表示灯" の点灯状態を設定する際に利用できます。\n
+     * 数値を直接入力できます。
+     */
+    const octet RedLight                  = 4; ///< 表示灯（赤）
+    const octet YellowLight               = 5; ///< 表示灯（黄）
+    const octet GreenLight                = 6; ///< 表示灯（緑）
+    const octet WhiteLight                = 7; ///< 表示灯（白）
+    const octet Buzzer                    = 8; ///< 表示灯（ブザー）
+    /*! @} */
+    
+    /*!
+     *@addtogroup  DioConst_SignalLightStatePortMap_Ref  Signal Light Portmap
+     * @ingroup DioConstGroup_Din_Ref
+     * @{
+     * @c getDin() にて，@ref SignalLight_Ref "表示灯" の点灯状態を判断する際に利用できます。\n
+     * 数値を直接入力できます。
+     */
+    const unsigned long long DinRedLED    = 0x0000000000000010; ///< 表示灯（赤）
+    const unsigned long long DinYellowLED = 0x0000000000000020; ///< 表示灯（黄）
+    const unsigned long long DinGreenLED  = 0x0000000000000040; ///< 表示灯（緑）
+    const unsigned long long DinWhiteLED  = 0x0000000000000080; ///< 表示灯（白）
+    const unsigned long long DinBuzzer    = 0x0000000000000100; ///< 表示灯（ブザー）
+    /*! @} */
+    
+    /*!
+     * 本IDLファイル リポジトリリビジョン
+     */
+    const string versionStringIDL = "43:8fe5caf5693b";
+    
+    /*!
+     * 本IDLファイル リポジトリ最終更新日時
+     */
+    const string versionDateIDL = "Mon Jan 26 20:57:35 2009 +0900";
+};
+
+#endif
+

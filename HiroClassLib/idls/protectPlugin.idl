@@ -1,0 +1,163 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      protectPlugin.idl
+ * @brief     双腕ロボット用　保護 インターフェース 定義ファイル
+ *
+ */
+#ifndef __PROTECT_PLUGIN_IDL__
+#define __PROTECT_PLUGIN_IDL__
+
+#include "HRPcontroller.idl"
+
+/*!
+ * @brief @a #protectPluginで使用する型・定数
+ */
+module protectPluginTypes
+{
+    /*!
+	 * @ingroup protectPluginGroup_Ref
+     * @brief   一旦停止の部位を指定する配列です。
+     *
+     * 以下のように部位が割り当てられています。
+     * @code
+     * ( 腰 , 首 , 右腕 , 左腕 )
+     * @endcode
+     *
+     * @c servoLock()，@c servoUnLock() において使用します。
+     */
+    typedef long LngArray4[4];
+};
+
+/*!
+ * @brief 一旦停止の制御を行うインターフェース
+ */
+interface protectPlugin : OpenHRP::Plugin
+{
+    /*!
+     *@addtogroup  protectPluginGroup_Ref  protectPlugin
+     */
+    
+    /*!
+	 * @ingroup protectPluginGroup_Ref
+     * @brief   指定部位のサーボをロックし，バッファに溜っている動作を空にします（一旦停止）。
+     * 
+     * @c servoUnLock() でロック状態を明示的に解除しない限り，ロック後の動作指令を受け付けません。 \n
+     * ロック ID を 0 にした場合は，ロック動作は行われず，現在のロックの状態を取得することが出来ます。 \n
+     * ロックが掛かっている部位に関しては，動作指令を受け付けません。 \n
+     *
+     * @note       ロック状態を解除した直後に本コマンドを実行した場合，ロックに失敗することがあります。
+     * @param[in]  inputID   全部位のロック ID リスト。
+     *                       - [形式] \n
+     *                         <tt> ( 腰のID, 首のID, 右腕のID, 左腕のID) </tt>
+     *                       - [例1] 右腕のみを bit指定でロックする場合： \n
+     *                         <tt> ( 0x0, 0x0, 0x1, 0x0 ) </tt>
+     *                       - [例2] 全部位をロックする場合： \n
+     *                         <tt> ( 0x1, 0x1, 0x1, 0x1 ) </tt>
+     *                       .
+     *                       \n
+     *                       ID の定義は以下の通りです。 \n
+     *                       上位4bit はシステム領域のため，状態遷移の度に上書きされますが，利用は問題ありません。
+     *                       - 0x01-0x08  : ユーザ定義
+     *                       - 0x10       : IK エラー
+     *                       - 0x20       : 予約
+     *                       - 0x40       : 予約
+     *                       - 0x80       : 安全機構 （一旦停止SWなど）
+     *                       - 0x100-     : 予約
+     *                       .
+     *                       \n
+     * @param[out] outputID  本コマンド実行結果のロック ID リスト。 \n
+     *                       ロックが掛かっている所のみ，bit が 1 になります。 \n
+     *                       形式は @a inputID と同一です。
+     * @return     無し。 
+     *
+     * @par <例：全部位をロックする>
+     * @code
+     * rbt.Protect.servoLock((0x1,0x1,0x1,0x1))
+     * @endcode
+     * 
+     */
+	void servoLock(in protectPluginTypes::LngArray4 inputID, out protectPluginTypes::LngArray4 outputID);
+
+    /*!
+	 * @ingroup protectPluginGroup_Ref
+     * @brief   指定部位のサーボロックを解除します（一旦停止の解除）。
+     *
+     * サーボロックの要因は以下のようになります。
+     * - @c servoLock()． で明示的にロックを掛けた。
+     * - 動作コマンドの実行時に下記エラーが起きた。
+     *   - INVERSE_KINEMA_ERROR
+     *   .
+     * - 一旦停止SW または 一旦停止用DIOポートが ON（有効）になった。
+     * 
+     * ロックを解除した時，ロボットの動作はありません。 \n
+     * 動作中にロック・解除した場合においても，コマンドが破棄されているため，解除した位置・姿勢が保持されます。
+     * 
+     * ロックされているかどうかは，動作コマンドのout型引数 @a status により確認できます。
+     * 
+     * @note    ロック状態になった直後に本コマンドを実行すると，失敗する場合があります。
+     * @note    ロック解除中に再度解除を行なった場合，コマンドは無視されます。
+     * @param[in]  inputID   全部位のロック ID リスト。
+     *                       - [形式] \n
+     *                         <tt> ( 腰のID, 首のID, 右腕のID, 左腕のID ) </tt>
+     *                       - [例1] IKエラーなども含めて，右腕のみ解除する場合： \n
+     *                         <tt> ( 0x0, 0x0, 0xff, 0x0 ) </tt>
+     *                       - [例2] 解除可能な部位全てを解除する場合： \n
+     *                         <tt> ( 0xff, 0xff, 0xff, 0xff ) </tt>
+     *                       .
+     *                       \n
+     *                       ID の定義は以下の通りです。 \n
+     *                       上位4bit はシステム領域のため，状態遷移の度に上書きされますが，利用は問題ありません。
+     *                       - 0x01-0x08  : ユーザ定義 \n
+     *                       - 0x10       : IK エラー \n
+     *                       - 0x20       : 予約 \n
+     *                       - 0x40       : 予約 \n
+     *                       - 0x80       : 安全機構 （一旦停止SWなど）\n
+     *                       - 0x100-     : 予約
+     *                       \n
+     * @param[out] outputID  本コマンド実行結果のロック ID リスト。 \n
+     *                       ロックが掛かっている所のみ，bit が 1 になります。 \n
+     *                       形式は @a inputID と同一です。
+     * @return     無し。 
+     *
+     * @par <例：解除可能な部位全てを解除する>
+     * @code
+     * rbt.Protect.servoUnLock((0xff,0xff,0xff,0xff))
+     * @endcode
+     * 
+     */
+    void servoUnLock(in protectPluginTypes::LngArray4 inputID, out protectPluginTypes::LngArray4 outputID);
+
+    /*!
+	 * @ingroup protectPluginGroup_Ref
+     * @brief  実行中の動作をキャンセル（指令破棄）します。
+     *
+     * @a part で指定された部位について，実行中の動作指令を破棄します。 \n
+     * その部位はサーボロック状態で停止します。
+     *
+     * @param[in,out] part 部位を指定します（"部位指定用定数" の内容と同一）。
+     *			    \n
+     *                      - 0x01 : 腰
+     *                      - 0x02 : 首
+     *                      - 0x04 : 右腕
+     *                      - 0x08 : 左腕
+     *                      .
+     *                      部位が複数に渡る場合は，加算した数値を指定してください。 \n
+     *                      （例） 全軸指定の場合 : 0x01 + 0x02 + 0x04 + 0x08 = 0x0f \n
+     *                      \n
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗。
+     *
+     * @par <例：全軸の実行中の動作をキャンセルする>
+     * @code
+     * rbt.Protect.motionCancel(0x0f)
+     * @endcode
+     * 
+     */
+    boolean motionCancel(inout octet part);
+
+};
+
+#endif
+
+//EOF
+

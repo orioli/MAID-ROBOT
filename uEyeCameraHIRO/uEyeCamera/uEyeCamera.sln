@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uEyeCamera", "uEyeCamera.vcproj", "{1BB7A34E-980A-48A8-9338-41F7B7D85787}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uEyeCamPy", "..\uEyeCamPy\uEyeCamPy.vcproj", "{47A3379D-B73C-4F19-95F0-49055C9D6A4C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5B821C46-2F72-4A02-8EE8-A89B26A3DD5B} = {5B821C46-2F72-4A02-8EE8-A89B26A3DD5B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stereoCaptureDemo", "..\stereoCaptureDemo\stereoCaptureDemo.vcproj", "{5B821C46-2F72-4A02-8EE8-A89B26A3DD5B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BB7A34E-980A-48A8-9338-41F7B7D85787} = {1BB7A34E-980A-48A8-9338-41F7B7D85787}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "camShiftDemo", "..\camShiftDemo\camShiftDemo.vcproj", "{81F63546-2C58-410B-8A15-77E2B91B8EAD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BB7A34E-980A-48A8-9338-41F7B7D85787} = {1BB7A34E-980A-48A8-9338-41F7B7D85787}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1BB7A34E-980A-48A8-9338-41F7B7D85787}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1BB7A34E-980A-48A8-9338-41F7B7D85787}.Debug|Win32.Build.0 = Debug|Win32
+		{1BB7A34E-980A-48A8-9338-41F7B7D85787}.Release|Win32.ActiveCfg = Release|Win32
+		{1BB7A34E-980A-48A8-9338-41F7B7D85787}.Release|Win32.Build.0 = Release|Win32
+		{47A3379D-B73C-4F19-95F0-49055C9D6A4C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{47A3379D-B73C-4F19-95F0-49055C9D6A4C}.Debug|Win32.Build.0 = Debug|Win32
+		{47A3379D-B73C-4F19-95F0-49055C9D6A4C}.Release|Win32.ActiveCfg = Release|Win32
+		{47A3379D-B73C-4F19-95F0-49055C9D6A4C}.Release|Win32.Build.0 = Release|Win32
+		{5B821C46-2F72-4A02-8EE8-A89B26A3DD5B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5B821C46-2F72-4A02-8EE8-A89B26A3DD5B}.Debug|Win32.Build.0 = Debug|Win32
+		{5B821C46-2F72-4A02-8EE8-A89B26A3DD5B}.Release|Win32.ActiveCfg = Release|Win32
+		{5B821C46-2F72-4A02-8EE8-A89B26A3DD5B}.Release|Win32.Build.0 = Release|Win32
+		{81F63546-2C58-410B-8A15-77E2B91B8EAD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{81F63546-2C58-410B-8A15-77E2B91B8EAD}.Debug|Win32.Build.0 = Debug|Win32
+		{81F63546-2C58-410B-8A15-77E2B91B8EAD}.Release|Win32.ActiveCfg = Release|Win32
+		{81F63546-2C58-410B-8A15-77E2B91B8EAD}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

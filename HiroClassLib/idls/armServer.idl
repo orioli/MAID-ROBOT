@@ -1,0 +1,2116 @@
+// -*- mode: idl; indent-tabs-mode: t; c-basic-offset: 4; -*-
+/*!
+ * @file      armServer.idl
+ * @brief     双腕ロボット用　Ver1.0互換モーション生成 インターフェース 定義ファイル
+ *
+ */
+ 
+ /*!
+ * @page WordPage 用語について
+ * <hr>
+ * @section JointNameRef 関節名称
+ *     本マニュアルに記載の関節名称を以下に定義します。 \n
+ *     図中，数字は関節番号，矢印はその軸の正回転する方向を表します。
+ *     
+ *     @image html fig_JointNameRef.png
+ *     @image latex fig_JointNameRef.png "" width=7cm
+ * 
+ *     - no. 0 : 腰 - ヨー軸
+ *       \n\n
+ *     - no. 1 : 首 - ヨー軸
+ *     - no. 2 : 首 - ピッチ軸
+ *       \n\n
+ *     - no. 3 : 右腕 - 肩 - ヨー軸
+ *     - no. 4 : 右腕 - 肩 - ピッチ軸
+ *     - no. 5 : 右腕 - 肘 - ピッチ軸
+ *     - no. 6 : 右腕 - 手首 - ヨー軸
+ *     - no. 7 : 右腕 - 手首 - ピッチ軸
+ *     - no. 8 : 右腕 - 手首 - ロール軸
+ *       \n\n
+ *     - no. 9 : 左腕 - 肩 - ヨー軸
+ *     - no.10 : 左腕 - 肩 - ピッチ軸
+ *     - no.11 : 左腕 - 肘 - ピッチ軸
+ *     - no.12 : 左腕 - 手首 - ヨー軸
+ *     - no.13 : 左腕 - 手首 - ピッチ軸
+ *     - no.14 : 左腕 - 手首 - ロール軸
+ * 
+ * <hr>
+ * @section CoordinateSystemRef 座標系の定義
+ *     グローバル（ロボット本体）およびツールポイント（ハンド）の座標系を表します。 \n
+ *     腕の全ての関節角度が 0deg の時 （腕を下にぶら下げた状態），
+ *     ロボット前方に X軸，ロボット上方に Z軸を持ちます。
+ *     
+ *     @image html fig_CoordinateSystemRef.png
+ *     @image latex fig_CoordinateSystemRef.png "" width=7.5cm
+ * 
+ * <hr>
+ * @section SeparateInterpolationRef 角度補間
+ *     ポイント・ポイント間の軌道生成（補間）方法の一つ。 \n
+ *     各軸毎に補間作業を行うため，各軸ごとが @b "ばらばらに" 指定した時間で動作します。 \n
+ *     \n
+ *     把持位置（ツメ先）の軌道は直線とはならず，前もって予測できません。 \n
+ *     その代わり，各関節の作動角が最小となるため，
+ *     @ref StraightInterpolationRef よりも動作時間が短縮されます。
+ *     
+ * <hr>
+ * @section StraightInterpolationRef 直線・球面補間
+ *     ポイント・ポイント間の軌道生成（補間）方法の一つ。 \n
+ *     把持位置（ツメ先）は直線的に移動し，把持姿勢は球面上の最短距離を取るような軌道となります。 \n
+ * 
+ * <hr>
+ * @section DaikeiSpdContRef 台形速度制御
+ *     ロボット動作速度の制御方式。 \n
+ *     各関節ごとに 動作開始・移動・停止 それぞれの加速度が一定となるように，サーボが制御されます。
+ *
+ */
+ 
+/*!
+ * @page TimingChartPage タイミングチャート
+ * <hr>
+ * @section ChestArmChartRef 腕と腰の並列動作
+ *     @image html fig_ChestArmChartRef_newPlugin.png
+ *     @image latex fig_ChestArmChartRef_newPlugin.png "" width=12cm
+ * 
+ */
+
+#ifndef __ARM_SERVER_IDL__
+#define __ARM_SERVER_IDL__
+
+#include "HRPcontroller.idl"
+
+/*!
+ * @brief Ver1.0互換モーションを生成するインターフェース
+ */
+interface armServer
+{
+    /*!
+     *@addtogroup  armServerGroup_Ref  armServer
+     */
+
+    /*!
+	 * @addtogroup	armCommonGroup_Ref	Common
+     * @ingroup		armServerGroup_Ref
+	 * @brief		共通コマンド群です。 状態取得，サーボOn/Off，一旦停止などを含みます。
+     */
+
+    /*!
+	 * @addtogroup	ArmChestGroup_Ref	Chest
+     * @ingroup		armServerGroup_Ref
+	 * @brief		腰軸のコマンド群です。 
+     */
+
+    /*!
+	 * @addtogroup	ArmNeckGroup_Ref	Neck
+     * @ingroup		armServerGroup_Ref
+	 * @brief		首軸のコマンド群です。 
+     */
+
+    /*!
+	 * @addtogroup	ArmRightGroup_Ref	Right Arm
+     * @ingroup		armServerGroup_Ref
+	 * @brief		右腕のコマンド群です。 
+     */
+
+    /*!
+	 * @addtogroup	ArmLeftGroup_Ref	Left Arm
+     * @ingroup		armServerGroup_Ref
+	 * @brief		左腕のコマンド群です。 
+     */
+
+	///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for getStatus/command-status
+    //
+    
+    /*!
+     *@ingroup     armCommonGroup_Ref
+     *@addtogroup  ArmConst_getStatusRef  Status Infomations
+     * @{
+     * @brief      @c getStatus() および各コマンドの引数・戻り値の判断に使用します。
+     * 
+     * 状態は数値で得られるため，判断処理の実装をわかりやすくするために用意しています。 \n
+     * 数値と直接比較・判断できます。
+     */
+    
+    /*!
+     * プラグイン初期化中。 \n
+     * @c getStatus() の戻り値が 0 になるまでお待ちください。 \n
+     * 通常は，CORBA接続可能になってから 100msec以内に，本フラグはOFFになります。
+     */
+    const unsigned long InitializationStage       = 0x00000001;
+    
+    /*!
+     * Busyエラー。 \n
+     * 下記の場合に発生します。
+     * - 動作指令を行なった部位が，既に動作中の場合。
+     * - 手先オフセット値を変更しようとした部位が，既に動作中の場合。
+     *   @if ALL
+     * - スプライン補間パスを追加しようとした部位が，既に@ref SplineContRef 指令直後のパス計算処理中の場合。
+     *   @endif
+     * 
+     * このエラーが発生した場合，動作は開始されません。
+     */
+    const unsigned long BusyError                 = 0x00000002;
+    
+    /*!
+     * 速度不良エラー。 \n
+     * 下記の場合に発生します。
+     * - 速度パーセントに， 1% 未満，または 100% より大きな値を指定した場合。
+     * 
+     * このエラーが発生した場合，動作は開始されません。
+     */
+    const unsigned long SpeedSpecifyError         = 0x00000004;
+    
+    /*!
+     * 速度オーバー警告。 \n
+     * 時間指定の各動作コマンドにおいて，最大動作速度を越える時間を指定した場合に発生します。 \n
+     * その場合，指定部位は最大速度で動作します。
+     * 
+     * パーセント指定の場合は，@c #SpeedSpecifyError が発生します。 \n
+     * @if ALL
+     * @ref SplineContRef の場合は，この警告の代わりに @c #SplineCalculationError が発生します。
+     * @endif
+     * 
+     * * 現在，時間指定の動作コマンドが存在しないため，本ワーニングは発生しません。
+     */
+    const unsigned long SpeedChangedWarning       = 0x00000008;
+    
+    /*!
+     * 補間計算部初期化エラー。 \n
+     * #armServer が有効になった直後に動作コマンドが送られた時，発生する場合があります。 \n
+     * このエラーが発生した場合は，1sec ほど待ってからコマンドを再実行してください。
+     */
+    const unsigned long InterpolatorInitError     = 0x00000010;
+    
+    /// @cond ALL
+    /*!
+     * @ref SplineContRef パス長オーバー。 \n
+     * スプライン補間のパス長が長すぎる場合に発生します。 \n
+     * 左右腕のそれぞれにおいて，最大パス長（設定可能な地点数）は 10地点 です。 \n
+     * （注） 開始点を含めると 11地点となります。
+     */
+    const unsigned long SplinePathLengthTooLong   = 0x00000020;
+    
+    /*!
+     * @ref SplineContRef 速度オーバーエラー。\n
+     * スプライン補間において，最大動作速度を越える値を指定した場合に発生します。
+     * 
+     * @ref SeparateInterpolationRef, @ref StraightInterpolationRef のコマンドでは，
+     * このエラーは発生せず，@c #SpeedChangedWarning が発生します。
+     * 
+     * このエラーが発生した場合，動作は開始されません。
+     */
+    const unsigned long SplineCalculationError    = 0x00000040;
+    /// @endcond
+    
+    /*!
+     * 右腕 IKエラー。 \n
+     * 右腕の IK（逆運動学）が解けません。目標座標・姿勢を変更してください。
+     */
+    const unsigned long IKErrorRight              = 0x00000100;
+    
+    /*!
+     * 右手首 位置異常。 \n
+     * 事前に設定された領域（胴体前面の楕円および下面，ユーザによる変更不可）に，
+     * 手首ロール軸（ハンド取付面）を移動しようとしたときに発生します。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long WristCollisionErrorRight  = 0x00000200;
+    
+    /*!
+     * 左腕 IKエラー。 \n
+     * 左腕の IK（逆運動学）が解けません。目標座標・姿勢を変更してください。
+     */
+    const unsigned long IKErrorLeft               = 0x00000400;
+    
+    /*!
+     * 左手首 位置異常。 \n
+     * 事前に設定された領域（胴体前面の楕円および下面，ユーザによる変更不可）に，
+     * 手首ロール軸（ハンド取付面）を移動しようとしたときに発生します。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long WristCollisionErrorLeft   = 0x00000800;
+
+    /*!
+     * 把持位置（ツメ先）異常。 \n
+     * 把持位置が異常です。 \n
+     * 事前に設定された領域（胴体前面の楕円および下面，ユーザによる変更不可）に，
+     * ツメ先を移動しようとしたときに発生します。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long EndPointCollisionError    = 0x00001000;
+    
+    /*!
+     * 右腕関節角度リミットオーバー。 \n
+     * 右腕の関節が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorRight = 0x00002000;
+    
+    /*!
+     * 左腕関節角度リミットオーバー。 \n
+     * 左腕の関節が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorLeft  = 0x00004000;
+    
+    /*!
+     * 腰関節角度リミットオーバー。 \n
+     * 腰軸が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorChest = 0x00008000;
+    
+    /*!
+     * 首関節角度リミットオーバー。 \n
+     * 首軸が動作範囲外を指示されたため，動作できません。 \n
+     * 指令値を変更してください。
+     */
+    const unsigned long JointAngleLimitErrorNeck  = 0x00010000;
+    
+    /// @cond ALL
+    /*!
+     * 両腕協調動作エラー。 \n
+     * @c syncTargetRelativeP() において，協調動作が失敗した場合に発生します。
+     */
+    const unsigned long WristSynchronizationError = 0x00020000;
+    
+    /*!
+     * 補間時間超過。 \n
+     * 最大補間時間を超過する速度パーセントが入力された場合に発生します。
+     * - 最大補間時間（ロボット内部の固定値） = 30 sec
+     * 
+     * 動作時間がこの値より長くなるような速度パーセントを指定すると，ロボットは動作しません。
+     * 
+     * * 現在は無効化されています。
+     */
+    const unsigned long MaxInterpolationTimeExceeded = 0x00040000;
+    /// @endcond
+
+    /*!
+     * 回転行列 破損（非正規化）。 \n
+     * 行列指定の動作コマンドにおいて，回転行列が正規化されていない場合に発生します。 \n
+     * 倍精度型レベルの正規化を行ってください。
+     */
+    const unsigned long RotationMatrixError = 0x00080000;
+    
+    /*!
+     * 一旦停止中。 \n
+     * 下記の場合に発生します。
+     * - @c protectiveStop()． を明示的に実行した。
+     * - IKエラー（ @c #IKErrorRight, @c #IKErrorLeft）が発生した。
+     * 
+     * 一旦停止状態を解除する場合は，@c exitProtectiveStop() を行なってください。
+     * 
+     * このエラーおよび @c #ServoEmergency のみ，状態取得方法に関わらず，現在の状況が反映されます
+     * （下記方法の全てでセットされます）。
+     * - @c getStatus()
+     * - 動作コマンドのout型引数 @a status
+     * - 設定コマンド（ @c setOffsetRightHand() など）の戻り値
+     */
+    const unsigned long ProtectiveStopState = 0x00800000;
+    
+    /*!
+     * サーボ異常。 \n
+     * サーボループにおいて，目標位置と現在値が 10°以上ずれるなどにより発生します
+     * （非常停止スイッチを押した場合など）。
+     * 
+     * このエラーを解除する場合は，@c #switchServo( @a false ) を行なってください。
+     * 
+     * このエラーおよび @c #ProtectiveStopState のみ，状態取得方法に関わらず，現在の状況が反映されます
+     * （下記方法の全てでセットされます）。
+     * - @c getStatus()
+     * - 動作コマンドのout型引数 @a status
+     * - 設定コマンド（ @c setOffsetRightHand() など）の戻り値
+     */
+    const unsigned long ServoEmergency = 0x01000000;
+    
+    /*!
+     * 右腕動作中断。 \n
+     * 一旦停止により右腕の動作を中断した場合に発生します。
+     * 
+     * 右腕に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedRightArm = 0x10000000;
+    
+    /*!
+     * 左腕動作中断。 \n
+     * 一旦停止により左腕の動作を中断した場合に発生します。
+     * 
+     * 左腕に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedLeftArm  = 0x20000000;
+    
+    /*!
+     * 首動作中断。 \n
+     * 一旦停止により首の動作を中断した場合に発生します。
+     * 
+     * 首に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedNeck     = 0x40000000;
+    
+    /*!
+     * 腰動作中断。 \n
+     * 一旦停止により腰の動作を中断した場合に発生します。
+     * 
+     * 腰に対する動作コマンドが正常に受理された時に，リセットされます。 \n
+     * 異常値（動作できない指令値）の場合は，リセットされません。
+     */
+    const unsigned long InterruptedChest    = 0x80000000;
+    
+    /*! @} */
+    
+	///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // used for Joint Calibration
+    //
+
+	/*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ジョイントキャリブレーションの動作順序を指定するシーケンス型です。
+     * 
+     * @c jointCalibration() において使用します。
+     */
+    typedef sequence<long long> LngLngSeq;
+    
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ジョイントキャリブレーションの開始時姿勢（関節角度）を指定する配列です。
+     * 
+     * @c jointCalibration() において使用します。
+     */
+    typedef float   FltArray15[15];
+    
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ジョイントキャリブレーション中の各関節軸の回転方向を指定する配列です。
+     * 
+     * @c jointCalibration() において使用します。
+     */
+    typedef boolean BolArray15[15];
+    
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   サーボ状態の詳細を取得するための配列です。
+     * 
+     * @c getServoStatus() において使用します。
+     */
+    typedef long long LngArray15[15];
+
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   一旦停止の部位を指定する配列です。
+     *
+     * 以下のように部位が割り当てられています。
+     * @code
+     * ( 腰 , 首 , 右腕 , 左腕 )
+     * @endcode
+     *
+     * @c protectiveStop()，@c exitProtectiveStop() において使用します。
+     */
+    typedef long LngArray4[4];
+
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // Command
+    //
+    
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ロボットの状態を返します。
+     * 
+     * 運動中も実行できます。 \n
+     * ステータスを代入後，ただちに制御を返します。
+     * 
+     * ステータスは一部を除き，前回このコマンドが呼ばれてから現在までの積算値になります。 \n
+     * コマンドが呼ばれると，下記2点を除き，積算されていたステータスはクリアされます。
+     * - @c #ProtectiveStopState
+     * - @c #ServoEmergency
+     * - @c #InterruptedRightArm
+     * - @c #InterruptedLeftArm
+     * - @c #InterruptedNeck
+     * - @c #InterruptedChest
+     * 
+     * 下記に記載した戻り値は， @ref ArmConst_getStatusRef "状態判定用定数" にも定義されています。
+     * @note    運動中かどうかを取得するときは，@c inMotion() を使用してください。
+     * 
+     * @param   無し。
+     * @retval  0x00000000  エラー・状態変化無し。 \n
+     *                      \n
+     * @retval  0x00000001  @copydoc InitializationStage \n
+     *                      <@c #InitializationStage> \n
+     *                      \n
+     * @retval  0x00000002  @copydoc BusyError \n
+     *                      <@c #BusyError> \n
+     *                      \n
+     * @retval  0x00000004  @copydoc SpeedSpecifyError \n
+     *                      <@c #SpeedSpecifyError> \n
+     *                      \n
+     * @retval  0x00000010  @copydoc InterpolatorInitError \n
+     *                      <@c #InterpolatorInitError> \n
+     *                      \n
+     * @if ALL
+     * @retval  0x00000020  @copydoc SplinePathLengthTooLong \n
+     *                      <@c #SplinePathLengthTooLong> \n
+     *                      \n
+     * @retval  0x00000040  @copydoc SplineCalculationError \n
+     *                      <@c #SplineCalculationError> \n
+     *                      \n
+     * @endif
+     * @retval  0x00000100  @copydoc IKErrorRight \n
+     *                      <@c #IKErrorRight> \n
+     *                      \n
+     * @retval  0x00000400  @copydoc IKErrorLeft \n
+     *                      <@c #IKErrorLeft> \n
+     *                      \n
+     * @retval  0x00002000  @copydoc JointAngleLimitErrorRight \n
+     *                      <@c #JointAngleLimitErrorRight> \n
+     *                      \n
+     * @retval  0x00004000  @copydoc JointAngleLimitErrorLeft \n
+     *                      <@c #JointAngleLimitErrorLeft> \n
+     *                      \n
+     * @retval  0x00008000  @copydoc JointAngleLimitErrorChest \n
+     *                      <@c #JointAngleLimitErrorChest> \n
+     *                      \n
+     * @retval  0x00010000  @copydoc JointAngleLimitErrorNeck \n
+     *                      <@c #JointAngleLimitErrorNeck> \n
+     *                      \n
+     * @if ALL
+     * @retval  0x00020000  @copydoc WristSynchronizationError \n
+     *                      <@c #WristSynchronizationError> \n
+     *                      \n
+     * @retval  0x00040000  @copydoc MaxInterpolationTimeExceeded \n
+     *                      <@c #MaxInterpolationTimeExceeded> \n
+     *                      \n
+     * @endif
+     * @retval  0x00080000  @copydoc RotationMatrixError \n
+     *                      <@c #RotationMatrixError> \n
+     *                      \n
+     * @retval  0x00800000  @copydoc ProtectiveStopState \n
+     *                      <@c #ProtectiveStopState> \n
+     *                      \n
+     * @retval  0x01000000  @copydoc ServoEmergency \n
+     *                      <@c #ServoEmergency> \n
+     *                      \n
+     * @retval  0x10000000  @copydoc InterruptedRightArm \n
+     *                      <@c #InterruptedRightArm> \n
+     *                      \n
+     * @retval  0x20000000  @copydoc InterruptedLeftArm \n
+     *                      <@c #InterruptedLeftArm> \n
+     *                      \n
+     * @retval  0x40000000  @copydoc InterruptedNeck \n
+     *                      <@c #InterruptedNeck> \n
+     *                      \n
+     * @retval  0x80000000  @copydoc InterruptedChest \n
+     *                      <@c #InterruptedChest> \n
+     *                      \n
+     * 
+     * @if ALL
+     *   <hr>
+     *   @par （社内用 捕捉資料）
+     *     - プラグイン初期化中 \n
+     *       プラグインのコンストラクションから init() を実行し終わるまでの間の状態を示す。 \n
+     *       この間にバッファにデータが書き込まれるのを防ぐため，
+     *       コマンドを受け付けないようにする。
+     *       
+     *     - 右/左腕Busy \n
+     *       - 右/左腕用のコマンドが実行された時，バッファへのデータ書き込みを正常に行なうため，
+     *         書き込むデータの準備完了から書き込みまでの間，バッファを mutex で保護している。 \n
+     *         この書き込み処理中に再び同じ腕のコマンドが実行された場合，このエラーが返される。
+     *         エラーとして Busy が返される。
+     *       - 動作中の関節（部位）に，それと同じ軸を動かすコマンドを送った場合（同一軸への多重指令），
+     *         このエラーが返される。
+     *     
+     *     - 右/左腕速度オーバー \n
+     *       関節速度限界値の設定は， ロボット初期化の段階で行なわれる。
+     * @endif
+     */
+    unsigned long getStatus(); // 4[bytes]
+
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ジョイントキャリブレーションを実行します。
+     * 
+     * 指定されたキャリブレーション開始時の姿勢（開始姿勢）から，微小（4deg）に各関節を動かします。 \n
+     * 開始姿勢に移行する動作パターンを任意に定義できます。
+     * 
+     * 既にキャリブが終了している場合でも，サーボＯＦＦの状態で，このコマンドを発行すると，再度キャリブを実行できます。
+     * センサエラーで，サーボが入らなくなった時や，原点がずれた疑いがある場合に再度原点復帰をすることが出来ます。
+     * 
+     * @par キャリブレーションの動作:
+     *      -# 開始姿勢へ移行する。
+     *         -# 最初に動かす関節軸の組み合わせ @a seq [0] に含まれる関節軸が， @a angles で指定した開始角度へ移行する。
+     *         -# 上記同様に， @a seq [1] , @a seq [2] ... と順番に移行する。
+     *      -# 全軸が @a rot の指定値（回転方向）に従って 4 deg 回転する。
+     *      -# サーボ OFF。
+     *      -# システム内で，結果のキャリブレーション値が保存される。
+     *      -# サーボ ON。
+     * 
+     * @par 例:
+     *      @code
+     * const armServer::LngLngSeq  seq = {0x00000020 | 0x00000800, 0x00000001| 0x00000002 +...}; //要 全軸指定
+     * const float  angle[15] = {0 , 0,0 , 0,0,-130,15,0,0 , 0,0,-130,-15,0,0};
+     * const bool   rot[15]   = {0 , 1,0 , 0,1,   0, 0,0,0 , 1,1,   0,  1,0,1};
+     * CORBA::ULong &status;
+     * armServer::jointCalibration(seq, angle, rot, status);
+     *      @endcode
+     *
+     * @attention  周辺の状態に関係なく，キャリブレーション開始姿勢 @a seq に移行します。 \n
+     *             @a seq の設定には充分注意してください。
+     * @param[in]  seq 動作順序を指定します。 \n
+     *                 同時に動作させたい関節軸の組み合わせを OR演算で生成し，
+     *                 その値のリスト（@c LngLngSeq 型）を入力してください。
+     *                 関節軸は各ビット毎に割り当てられています。
+     *                 （@ref CoordConst_JointPartRef "関節角名称" の内容と同一）。 \n
+     *                 - 0x00000001 : 腰   - ヨー軸
+     *                 - 0x00000002 : 首   - ヨー軸
+     *                 - 0x00000004 : 首   - ピッチ軸
+     *                 - 0x00000008 : 右腕 - 肩   - ヨー軸
+     *                 - 0x00000010 : 右腕 - 肩   - ピッチ軸
+     *                 - 0x00000020 : 右腕 - 肘   - ピッチ軸
+     *                 - 0x00000040 : 右腕 - 手首 - ヨー軸
+     *                 - 0x00000080 : 右腕 - 手首 - ピッチ軸
+     *                 - 0x00000100 : 右腕 - 手首 - ロール軸
+     *                 - 0x00000200 : 左腕 - 肩   - ヨー軸
+     *                 - 0x00000400 : 左腕 - 肩   - ピッチ軸
+     *                 - 0x00000800 : 左腕 - 肘   - ピッチ軸
+     *                 - 0x00001000 : 左腕 - 手首 - ヨー軸
+     *                 - 0x00002000 : 左腕 - 手首 - ピッチ軸
+     *                 - 0x00004000 : 左腕 - 手首 - ロール軸
+     *
+     * @param[in]  angles キャリブレーション開始時の姿勢（関節角度）を指定します。 \n
+     *                    腰・首・右腕・左腕 の順 （上記 @a seq の説明順） で，指定します。
+     *                    - この開始姿勢の角度精度には， 1 deg 程度の誤差があります。 \n
+     *                      さらに，キャリブレーションの為に各軸が 4 deg 回転しますので，
+     *                      その角度ずれ分を考慮して，開始姿勢を定義してください。
+     *
+     * @param[in]  rot    キャリブレーション中の各関節軸の回転方向を指定します。 \n
+     *                    腰・首・右腕・左腕 の順 （上記 @a seq の説明順） で，指定します。
+     *                    - true  : 正回転
+     *                    - false : 負回転
+     *
+     * @param[out] status キャリブレーションの詳細結果を返します。 
+     *                    - 0x00010001 : シーケンスチェックエラー（何も指定されていないシーケンスがある）
+     *                    - 0x00010002 : シーケンスチェックエラー（同じ関節が２回指定されている）
+     *                    - 0x00010003 : シーケンスチェックエラー（指定されていない関節がある。）
+     *                    - 0x00010004 : シーケンスチェックエラー（存在しない関節が指定されている。）
+     *                    - 0x00020001 : 入力関節角度リミットオーバー
+     *                    - 0x00020002 : 4deg 回転後関節角度リミットオーバー
+     *                    - 0x00030001～0x0003000F: シーケンスseq[status-0x30001] 実行中のサーボＯＮエラー
+     *                    - 0x00040001～0x0004000F: シーケンスseq[status-0x40001] 実行中の運動中エラー
+     *                    - 0x00050001 : 4deg 回転時のエラー
+     *                    - 0x00060001 : Z相位相合わせ最終チェックエラー
+     *                    - 0x00070001 : サーボＯＮswitchServo(true)エラー
+     *                    - 0x00080000 : キャリブ完了フラグのクリア
+     *                                   このビットはキャリブ開始時にキャリブをする必要が無い場合のみ他のフラグに足されます。
+     *                                   ロボットがキャリブできない状態や，入力されたコマンドが異常な場合には，このフラグは立ちません。
+     *                                   このフラグが立つと，一旦キャリブ完了フラグがクリアされますので，キャリブが正常に終了するまで，
+     *                                   switchServo(true)で，サーボを入れることが出来なくなります。
+     *                    - 0x00100000 : ロボットがキャリブできない状態
+     *                                   要因：サーボＯＮである。エマーボタンが押されている。一旦停止が掛かっている。
+     * 
+     * @retval "true  (=1)" 成功。
+     * @retval "false (=0)" 失敗。 引数不良時も @a false になります。
+     */
+    boolean jointCalibration(in LngLngSeq seq, in FltArray15 angles,
+                             in BolArray15 rot, out unsigned long status);
+
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ジョイントキャリブレーションの状態（完了済み）をチェックします。
+     *
+     * @retval  "true  (=1)" キャリブレーション完了済み。
+     * @retval  "false (=0)" キャリブレーション未実施 または 未完了。
+     */
+    boolean checkCalibration();
+
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   サーボ・リレーのON/OFFを行ないます。
+     * 
+     * 引数が @a false の時は，サーボをOFFし，@c #ServoEmergency状態を解除します。 \n
+     * 引数が @a true  の時は，サーボの指令値と目標値を一致させて，リレーおよびサーボをONします。
+     * 
+     * 下記の場合は指令失敗となり，@a false が返されます。
+     * - 起動後にキャリブレーションを行なわない状態で，このコマンドを実行した。
+     * - サーボON中に再度ONを行なった。
+     * 
+     * @param[in]  t  サーボON/OFFの選択。
+     *                - true  (=1) : サーボをONします。
+     *                - false (=0) : サーボをOFFします。
+     * @retval     "true  (=1)" 成功。
+     * @retval     "false (=0)" 失敗。
+     */
+    boolean switchServo(in boolean t);
+
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   サーボの ON / OFF 状態を返します。
+     *
+     * @param[out] status  詳細 （モータドライバの状態） を返します。 \n
+     *                     軸番号の順で状態値が配列に入ります。
+     *                     - status[0]  = 腰   - ヨー軸
+     *                     - status[1]  = 首   - ヨー軸
+     *                     - status[2]  = 首   - ピッチ軸
+     *                     - status[3]  = 右腕 - 肩   - ヨー軸
+     *                     - status[4]  = 右腕 - 肩   - ピッチ軸
+     *                     - status[5]  = 右腕 - 肘   - ピッチ軸
+     *                     - status[6]  = 右腕 - 手首 - ヨー軸
+     *                     - status[7]  = 右腕 - 手首 - ピッチ軸
+     *                     - status[8]  = 右腕 - 手首 - ロール軸
+     *                     - status[9]  = 左腕 - 肩   - ヨー軸
+     *                     - status[10] = 左腕 - 肩   - ピッチ軸
+     *                     - status[11] = 左腕 - 肘   - ピッチ軸
+     *                     - status[12] = 左腕 - 手首 - ヨー軸
+     *                     - status[13] = 左腕 - 手首 - ピッチ軸
+     *                     - status[14] = 左腕 - 手首 - ロール軸
+     *                     .
+     *                     各配列値の内容は下記の通りです。
+     *                     - bit  0 : [MNT] システムスタンバイモード
+     *                     - bit  1 : [MNT] サーボスタンバイモード
+     *                     - bit  2 : [MNT] サーボ ON モード
+     *                     - bit  3 : [MNT] ワーニングモード
+     *                     - bit  4 : [MNT] アラームモード
+     *                     - bit  5 : [MNT] 同期モード ON
+     *                     - bit  6 : [MNT] 非常停止ボタン解除（イネーブル ON）
+     *                     - bit  7 : [MNT] 位置決め完了
+     *                     - bit  8 : [Alarm] 位置偏差エラー
+     *                     - bit  9 : [Alarm] モータ電源過大，途絶エラー
+     *                     - bit 10 : [Alarm] 通信エラー
+     *                     - bit 11 : [Alarm] ホールセンサ，エンコーダエラー
+     *                     - bit 12 : [Alarm] 過熱エラー
+     *                     - bit 13 : [Alarm] 加速度エラー
+     *                     - bit 14 : [Alarm] 過電流エラー
+     *                     - bit 15 : [Alarm] 過負荷エラー
+     * 
+     * @retval  "true  (=1)" 全関節 サーボON。
+     * @retval  "false (=0)" 上記以外 （サーボOFFの関節がある）。
+     */
+	boolean getServoStatus(out LngArray15 status);
+    
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   指定部位のサーボをロックし，バッファに溜っている動作を空にします（一旦停止）。
+     * 
+     * @c exitProtectiveStop() でロック状態を明示的に解除しない限り，ロック後の動作指令を受け付けません。 \n
+     * ロック ID を 0 にした場合は，ロック動作は行われず，現在のロックの状態を取得することが出来ます。 \n
+     * ロックが掛かっている部位に関しては，動作指令を受け付けません。 \n
+     *
+     * @note       ロック状態を解除した直後に本コマンドを実行した場合，ロックに失敗することがあります。
+     * @param[in]  inputID   全部位のロック ID リスト。
+     *                       - [形式] \n
+     *                         <tt> ( 腰のID, 首のID, 右腕のID, 左腕のID) </tt>
+     *                       - [例1] 右腕のみを bit指定でロックする場合： \n
+     *                         <tt> ( 0x0, 0x0, 0x1, 0x0 ) </tt>
+     *                       - [例2] 全部位をロックする場合： \n
+     *                         <tt> ( 0x1, 0x1, 0x1, 0x1 ) </tt>
+     *                       .
+     *                       \n
+     *                       ID の定義は以下の通りです。 \n
+     *                       上位4bit はシステム領域のため，状態遷移の度に上書きされますが，利用は問題ありません。
+     *                       - 0x01-0x08  : ユーザ定義
+     *                       - 0x10       : IK エラー
+     *                       - 0x20       : 予約
+     *                       - 0x40       : 予約
+     *                       - 0x80       : 安全機構 （一旦停止SWなど）
+     *                       - 0x100-     : 予約
+     *                       .
+     *                       \n
+     * @param[out] outputID  本コマンド実行結果のロック ID リスト。 \n
+     *                       ロックが掛かっている所のみ，bit が 1 になります。 \n
+     *                       形式は @a inputID と同一です。
+     * @return     無し。 
+     */
+    void protectiveStop(in LngArray4 inputID, out LngArray4 outputID);
+    
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   指定部位のサーボロックを解除します（一旦停止の解除）。
+     *
+     * サーボロックの要因は以下のようになります。
+     * - @c protectiveStop()． で明示的にロックを掛けた。
+     * - 動作コマンドの実行時に下記エラーが起きた。
+     *   - @c #IKErrorRight
+     *   - @c #IKErrorLeft
+     *   .
+     * - 一旦停止SW または 一旦停止用DIOポートが ON（有効）になった。
+     * 
+     * ロックを解除した時，ロボットの動作はありません。 \n
+     * 動作中にロック・解除した場合においても，コマンドが破棄されているため，解除した位置・姿勢が保持されます。
+     * 
+     * ロックされているかどうかは，下記のいずれにおいても，
+     * @c #ProtectiveStopState のビットが立っているかどうかにより確認できます。
+     * - @c getStatus()
+     * - 動作コマンドのout型引数 @a status
+     * - 設定コマンド（@c setOffsetRightHand() など）の戻り値
+     * 
+     * @note    ロック状態になった直後に本コマンドを実行すると，失敗する場合があります。
+     * @note    ロック解除中に再度解除を行なった場合，コマンドは無視されます。
+     * @param[in]  inputID   全部位のロック ID リスト。
+     *                       - [形式] \n
+     *                         <tt> ( 腰のID, 首のID, 右腕のID, 左腕のID ) </tt>
+     *                       - [例1] IKエラーなども含めて，右腕のみ解除する場合： \n
+     *                         <tt> ( 0x0, 0x0, 0xff, 0x0 ) </tt>
+     *                       - [例2] 解除可能な部位全てを解除する場合： \n
+     *                         <tt> ( 0xff, 0xff, 0xff, 0xff ) </tt>
+     *                       .
+     *                       \n
+     *                       ID の定義は以下の通りです。 \n
+     *                       上位4bit はシステム領域のため，状態遷移の度に上書きされますが，利用は問題ありません。
+     *                       - 0x01-0x08  : ユーザ定義
+     *                       - 0x10       : IK エラー
+     *                       - 0x20       : 予約
+     *                       - 0x40       : 予約
+     *                       - 0x80       : 安全機構 （一旦停止SWなど）
+     *                       - 0x100-     : 予約
+     *                       \n
+     * @param[out] outputID  本コマンド実行結果のロック ID リスト。 \n
+     *                       ロックが掛かっている所のみ，bit が 1 になります。 \n
+     *                       形式は @a inputID と同一です。
+     * @return     無し。 
+     */
+    void exitProtectiveStop(in LngArray4 inputID, out LngArray4 outputID);
+
+    /*!
+     *@ingroup armCommonGroup_Ref
+     * @brief  実行中の動作をキャンセル（指令破棄）します。
+     *
+     * @a part で指定された部位について，実行中の動作指令を破棄します。 \n
+     * その部位はサーボロック状態で停止します。
+     *
+     * @param[in,out] part 部位を指定します（@ref CoordConst_inMotionRef "部位指定用定数" の内容と同一）。
+     *			    \n
+     *                      - 0x01 : 首
+     *                      - 0x02 : 腰
+     *                      - 0x04 : 右腕
+     *                      - 0x08 : 左腕
+     *                      .
+     *                      部位が複数に渡る場合は，加算した数値を指定してください。 \n
+     *                      （例） 全軸指定の場合 : 0x01 + 0x02 + 0x04 + 0x08 = 0x0f \n
+     *                      \n
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗。
+     */
+    boolean motionCancel(inout octet part);
+    
+    /*!
+     *@ingroup  ArmRightGroup_Ref
+     * @brief   右手首軸から把持位置（ツメ先）までの相対座標（オフセット）を設定します。
+     * 
+     * @ref CoordinateSystemRef における値を指定します。
+     * 
+     * - 右腕動作中 \n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   動作終了後，設定が有効になります。 \n
+     * - 一旦停止中，サーボ異常 \n
+     *   エラーとして扱われ，直ちに制御が返されます。設定は行なわれません。 \n
+     *   戻り値として，一旦停止中の場合は @c #ProtectiveStopState を，サーボ異常の場合は @c #ServoEmergency を返します。 \n
+     * - その他\n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   @c #ServoEmergency 状態の場合も正常に設定され，戻り値として @c 0x0 が返されます。
+     * 
+     * @note       座標系については，@ref CoordinateSystemRef を参照してください。
+     * @param[in]  "x, y, z"  @ref CoordinateSystemRef におけるオフセット量 [mm]
+     * @retval     0x0        成功。
+     * @retval     0x00800000 失敗。 <@c #ProtectiveStopState>
+     * @retval     0x01000000 失敗。 <@c #ServoEmergency>
+     */
+    unsigned long setOffsetRightHand(in double x, in double y, in double z);
+
+    /*!
+     *@ingroup  ArmRightGroup_Ref
+     * @brief   右手首軸から把持位置（ツメ先）までの相対座標（オフセット）を取得します。
+     * 
+     * @ref CoordinateSystemRef における値が返されます。
+     * 
+     * @param[out]  "x, y, z"  @ref CoordinateSystemRef におけるオフセット量 [mm]
+     */
+    void getOffsetRightHand(out double x, out double y, out double z);
+    
+    /*!
+     *@ingroup  ArmLeftGroup_Ref
+     * @brief   左手首軸から把持位置（ツメ先）までの相対座標（オフセット）を設定します。
+     * 
+     * @ref CoordinateSystemRef における値を指定します。
+     * 
+     * - 左腕動作中\n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   動作終了後，設定が有効になります。 \n
+     * - 一旦停止中，サーボ異常 \n
+     *   エラーとして扱われ，直ちに制御が返されます。設定は行なわれません。 \n
+     *   戻り値として，一旦停止中の場合は @c #ProtectiveStopState を，サーボ異常の場合は @c #ServoEmergency を返します。 \n
+     * - その他\n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   @c #ServoEmergency 状態の場合も正常に設定され，戻り値として @c 0x0 が返されます。
+     * 
+     * @note       座標系については，@ref CoordinateSystemRef を参照してください。
+     * @param[in]  "x, y, z"  @ref CoordinateSystemRef におけるオフセット量 [mm]
+     * @retval     0x0        成功。
+     * @retval     0x00800000 失敗。 <@c #ProtectiveStopState>
+     * @retval     0x01000000 失敗。 <@c #ServoEmergency>
+     */
+    unsigned long setOffsetLeftHand(in double x, in double y, in double z);
+
+    /*!
+     *@ingroup  ArmLeftGroup_Ref
+     * @brief   左手首軸から把持位置（ツメ先）までの相対座標（オフセット）を取得します。
+     * 
+     * @ref CoordinateSystemRef における値が返されます。
+     * 
+     * @param[out]  "x, y, z"  @ref CoordinateSystemRef におけるオフセット量 [mm]
+     */
+    void getOffsetLeftHand(out double x, out double y, out double z);
+    
+    /*!
+     *@ingroup  ArmRightGroup_Ref
+     * @brief   右手首軸から把持位置（ツメ先）までの相対座標（オフセット）を設定します。
+	 *			ロール軸･ピッチ軸･ヨー軸についても設定できます。
+     * 
+     * @ref CoordinateSystemRef における値を指定します。
+     * 
+     * - 右腕動作中 \n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   動作終了後，設定が有効になります。 \n
+     * - 一旦停止中，サーボ異常 \n
+     *   エラーとして扱われ，直ちに制御が返されます。設定は行なわれません。 \n
+     *   戻り値として，一旦停止中の場合は @c #ProtectiveStopState を，サーボ異常の場合は @c #ServoEmergency を返します。 \n
+     * - その他\n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   @c #ServoEmergency 状態の場合も正常に設定され，戻り値として @c 0x0 が返されます。
+     * 
+     * @note       座標系については，@ref CoordinateSystemRef を参照してください。
+     * @param[in]  "x, y, z, r, p, w"  @ref CoordinateSystemRef におけるオフセット量 [mm, deg]
+     * @retval     0x0        成功。
+     * @retval     0x00800000 失敗。 <@c #ProtectiveStopState>
+     * @retval     0x01000000 失敗。 <@c #ServoEmergency>
+     */
+    unsigned long setOffsetRightHandEx(in double x, in double y, in double z, in double r, in double p, in double w);
+
+    /*!
+     *@ingroup  ArmRightGroup_Ref
+     * @brief   右手首軸から把持位置（ツメ先）までの相対座標（オフセット）を取得します。
+	 *			ロール軸･ピッチ軸･ヨー軸についても取得できます。
+     * 
+     * @ref CoordinateSystemRef における値が返されます。
+     * 
+     * @param[out]  "x, y, z, r, p, w"  @ref CoordinateSystemRef におけるオフセット量 [mm, deg]
+     */
+    void getOffsetRightHandEx(out double x, out double y, out double z, out double r, out double p, out double w);
+    
+    /*!
+     *@ingroup  ArmLeftGroup_Ref
+     * @brief   左手首軸から把持位置（ツメ先）までの相対座標（オフセット）を設定します。
+	 *			ロール軸･ピッチ軸･ヨー軸についても設定できます。
+     * 
+     * @ref CoordinateSystemRef における値を指定します。
+     * 
+     * - 左腕動作中\n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   動作終了後，設定が有効になります。 \n
+     * - 一旦停止中，サーボ異常 \n
+     *   エラーとして扱われ，直ちに制御が返されます。設定は行なわれません。 \n
+     *   戻り値として，一旦停止中の場合は @c #ProtectiveStopState を，サーボ異常の場合は @c #ServoEmergency を返します。 \n
+     * - その他\n
+     *   直ちに設定が行なわれ，制御が返されます。 \n
+     *   @c #ServoEmergency 状態の場合も正常に設定され，戻り値として @c 0x0 が返されます。
+     * 
+     * @note       座標系については，@ref CoordinateSystemRef を参照してください。
+     * @param[in]  "x, y, z, r, p, w"  @ref CoordinateSystemRef におけるオフセット量 [mm, deg]
+     * @retval     0x0        成功。
+     * @retval     0x00800000 失敗。 <@c #ProtectiveStopState>
+     * @retval     0x01000000 失敗。 <@c #ServoEmergency>
+     */
+    unsigned long setOffsetLeftHandEx(in double x, in double y, in double z, in double r, in double p, in double w);
+
+    /*!
+     *@ingroup  ArmLeftGroup_Ref
+     * @brief   左手首軸から把持位置（ツメ先）までの相対座標（オフセット）を取得します。
+	 *			ロール軸･ピッチ軸･ヨー軸についても設定できます。
+     * 
+     * @ref CoordinateSystemRef における値が返されます。
+     * 
+     * @param[out]  "x, y, z, r, p, w"  @ref CoordinateSystemRef におけるオフセット量 [mm, deg]
+     */
+    void getOffsetLeftHandEx(out double x, out double y, out double z, out double r, out double p, out double w);
+  
+    /*!
+     *@ingroup  armCommonGroup_Ref
+     * @brief   ロボットの指定部位の動作状態取得 / 動作終了待ちを行ないます。
+     * 
+     * 下記 2種類の機能があります。
+     * - 指定部位が動作中であるか否かを調べる。
+     * - 動作が終了するまで待つ（制御を返さない）。
+     * 
+     * 定義されていない部位，部位無しの値（@c 0x00, @c 0x10 など）を指定した場合，
+     * このコマンドは何も実行しません。
+     * 
+     * @param[in, out] part 部位を指定 / 返されます。
+     *                      - [in ] 部位を指定します。
+     *                      - [out] 指定されている部位のうち，動作中の部位の合計値が返されます。
+     *                      .
+     *                      \n
+     *                      部位は下記のようになります（@ref CoordConst_inMotionRef "部位指定用定数" の内容と同一）。
+     *                      - 0x01 : 首
+     *                      - 0x02 : 腰
+     *                      - 0x04 : 右腕
+     *                      - 0x08 : 左腕
+     *                      .
+     *                      部位が複数に渡る場合は，加算した数値を指定してください。 \n
+     *                      （例） 全軸指定の場合 : 0x01 + 0x02 + 0x04 + 0x08 = 0x0f \n
+     *                      \n
+     *                      指定部位が動作していない場合，戻り値は 0x0 になります。 \n
+     *                      \n
+     * @param[in]      wait 動作終了待ち機能の使用/未使用を選択します。
+     *                 - true ( =1) : 動作終了するまで制御を返しません。 \n
+     *                   @c #ProtectiveStopState 状態の場合，ロックが解除されるまで制御を返しません。 \n
+     *                   必要に応じて，ロック状態監視・解除プログラムを別に用意してください。
+     *                 - false (=0) : 動作終了を待たずに制御を返します。
+     * @retval         "true  (=1)" 動作中。
+     * @retval         "false (=0)" 停止中。
+     */
+    boolean inMotion(inout octet part, in boolean wait);
+
+    /*!
+     *@ingroup ArmChestGroup_Ref
+     * @brief  腰を速度パーセント指定で動かします。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および腰軸動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * 腰の動作と腕の動作（座標指定）が並行して行なわれる場合，腕の動作で使用される補間方法により，
+     * 動作終了後の手先座標が指示値と異なる場合があります（タイミングチャート : @ref ChestArmChartRef）。
+     * - @ref StraightInterpolationRef : \n
+     *        腰軸動作が考慮されます。 \n
+     *        腰・腕の動作終了時における手先座標・姿勢は変化しません。 \n
+     *        \n
+     * - @ref SeparateInterpolationRef : \n
+     *        腕動作のタイミングにより異なります。 \n
+     *        \n
+     *     - 腰軸の後に腕を動かした場合 : \n
+     *           腰軸動作が考慮されます。 \n
+     *           腰・腕の動作終了時における手先座標・姿勢は変化しません。 \n
+     *           \n
+     *     - 腕の後に腰軸を動かした場合 : \n
+     *           腰軸動作は考慮されません。 \n
+     *           腰・腕の動作終了時における手先座標・姿勢は変化します \n
+     *           （腰軸動作分だけ，ロボットのヨー軸を中心に回転します）。
+     * - 備考1 : \n
+     *          動作させていない腕は，腰軸動作にあわせて，腕全体がロボットのヨー軸を中心に回転します。 \n
+     *          \n
+     * - 備考2 : \n
+     *          動作終了後の手先座標が指示値と異なる条件は，座標指定による腕動作
+     *          （ @c setTargetRightArmP()． など）の場合のみです。
+     *          - 角度指定（@c setJointAnglesRightArmP() など）の場合は，
+     *            腰軸動作は考慮されず，ロボットのヨー軸を中心に回転します。
+     *            _@if ALL
+     *          - @ref SplineContRef の場合，上記の角度指定の動作と同一になります。
+     *            @endif
+     * 
+     * @attention  把持位置（ツメ先）を一定位置に保つことはできません。
+     * @param[in]  y       腰軸の目標角度 [deg]。
+     * @param[in]  percent パーセントで指定する動作速度 [%]。
+     *                     - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                     - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status  下記状態が返されます。
+     *                     - エラー無し: \n
+     *                       @c 0x0
+     *                     - 運動中部位への多重指令: \n
+     *                       @c 0x00000002  (=@c #BusyError)
+     *                     - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                       @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                     - 関節角 可動範囲外: \n
+     *                       @c 0x00008000  (=@c #JointAngleLimitErrorChest)
+     *                     - 一旦停止中: \n
+     *                       @c 0x00800000  (=@c #ProtectiveStopState)
+     *                     - サーボ異常: \n
+     *                       @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setAngleChestP(in double y, in double percent, out unsigned long status);
+
+    /*!
+     *@ingroup ArmNeckGroup_Ref
+     * @brief  首を速度パーセント指定で動かします。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および首軸動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @param[in]  y       首軸の目標角度（ヨー軸） [deg]。
+     * @param[in]  p       首軸の目標角度（ピッチ軸） [deg]。
+     * @param[in]  percent パーセントで指定する動作速度 [%]。
+     *                     - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                     - 首軸において一番遅い軸が 基準となります。
+     *                     - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status  下記状態が返されます。 \n
+     *                     - エラー無し: \n
+     *                       @c 0x0
+     *                     - 運動中部位への多重指令: \n
+     *                       @c 0x00000002  (=@c #BusyError)
+     *                     - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                       @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                     - 関節角 可動範囲外: \n
+     *                       @c 0x00010000  (=@c #JointAngleLimitErrorNeck)
+     *                     - 一旦停止中: \n
+     *                       @c 0x00800000  (=@c #ProtectiveStopState)
+     *                     - サーボ異常: \n
+     *                       @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setAnglesNeckP(in double y, in double p, in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕を速度パーセント指定で，指定された関節角度に動かします（ @ref SeparateInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref SeparateInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および右腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @param[in]  j0      右肩ヨー軸 [deg]。
+     * @param[in]  j1      右肩ピッチ軸 [deg]。
+     * @param[in]  j2      右肘ピッチ軸 [deg]。
+     * @param[in]  j3      右手首ヨー軸 [deg]。
+     * @param[in]  j4      右手首ピッチ軸 [deg]。
+     * @param[in]  j5      右手首ロール軸 [deg]。
+     * @param[in]  percent パーセントで指定する動作速度 [%]。
+     *                     - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                     - 右腕において一番遅い軸が 基準となります。
+     *                     - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status  下記状態が返されます。 \n
+     *                     - エラー無し: \n
+     *                       @c 0x0
+     *                     - 運動中部位への多重指令: \n
+     *                       @c 0x00000002  (=@c #BusyError)
+     *                     - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                       @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                     - 関節角 可動範囲外: \n
+     *                       @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     *                     - 一旦停止中: \n
+     *                       @c 0x00800000  (=@c #ProtectiveStopState)
+     *                     - サーボ異常: \n
+     *                       @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setJointAnglesRightArmP(in double j0, in double j1, in double j2, 
+                                  in double j3, in double j4, in double j5, 
+                                  in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕を速度パーセント指定で，指定された関節角度に動かします（ @ref SeparateInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref SeparateInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および左腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @param[in]  j0      左肩ヨー軸 [deg]。
+     * @param[in]  j1      左肩ピッチ軸 [deg]。
+     * @param[in]  j2      左肘ピッチ軸 [deg]。
+     * @param[in]  j3      左手首ヨー軸 [deg]。
+     * @param[in]  j4      左手首ピッチ軸 [deg]。
+     * @param[in]  j5      左手首ロール軸 [deg]。
+     * @param[in]  percent パーセントで指定する動作速度 [%]。
+     *                     - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                     - 左腕において一番遅い軸が 基準となります。
+     *                     - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status  下記状態が返されます。 \n
+     *                     - エラー無し: \n
+     *                       @c 0x0
+     *                     - 運動中部位への多重指令: \n
+     *                       @c 0x00000002  (=@c #BusyError)
+     *                     - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                       @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                     - 関節角 可動範囲外: \n
+     *                       @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     *                     - 一旦停止中: \n
+     *                       @c 0x00800000  (=@c #ProtectiveStopState)
+     *                     - サーボ異常: \n
+     *                       @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setJointAnglesLeftArmP(in double j0, in double j1, in double j2,
+                                 in double j3, in double j4, in double j5,
+                                 in double percent, out unsigned long status);
+    
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    //
+    // Global Coodinates
+    //
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕を速度パーセント指定で，指令された位置・姿勢に動かします（ロボット座標系，
+     *         @ref StraightInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref StraightInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および右腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * 腰の動作中に本コマンドが呼ばれた場合においても，その時点の状態から
+     * @ref StraightInterpolationRef を行ないます。 \n
+     * そのため，動作中にエラーが発生する場合があります。エラーは @c getStatus() で取得してください。
+     * -# IK計算失敗: \n
+     *    @c getStatus() > @c 0x00800100  (=@c #IKErrorRight + @c #ProtectiveStopState) \n
+     *    一旦停止状態になるため，動作再開には @c exitProtectiveStop() が必要です。 \n
+     *    \n
+     * -# IK計算結果の関節角度が可動範囲外: \n
+     *    @c getStatus() > @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     * 
+     * @note       把持位置（ツメ先）を直線的に動かすため，動作速度が若干落ちます。 \n
+     *             動作速度優先の場合は，@c seqTargetRightArmP()． を使用してください。
+     * @param[in]  "x, y, z" 位置 [mm]。
+     * @param[in]  "r, p, w" 姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                       --- 回転順序: ロール > ピッチ > ヨー
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 右腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000100  (=@c #IKErrorRight)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setTargetRightArmP(in double x, in double y, in double z, 
+                             in double r, in double p, in double w,
+                             in double percent, out unsigned long status);
+
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕を速度パーセント指定で，指令された位置・姿勢に動かします（ロボット座標系，
+     *         @ref StraightInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref StraightInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および左腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * 腰の動作中に本コマンドが呼ばれた場合においても，その時点の状態から
+     * @ref StraightInterpolationRef を行ないます。 \n
+     * そのため，動作中にエラーが発生する場合があります。エラーは @c getStatus() で取得してください。
+     * -# IK計算失敗: \n
+     *    @c getStatus() > @c 0x00800400  (=@c #IKErrorLeft + @c #ProtectiveStopState) \n
+     *    一旦停止状態になるため，動作再開には @c exitProtectiveStop() が必要です。 \n
+     *    \n
+     * -# IK計算結果の関節角度が可動範囲外: \n
+     *    @c getStatus() > @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     * 
+     * @note       把持位置（ツメ先）を直線的に動かすため，動作速度が若干落ちます。 \n
+     *             動作速度優先の場合は，@c seqTargetLeftArmP()． を使用してください。
+     * @param[in]  "x, y, z" 位置 [mm]。
+     * @param[in]  "r, p, w" 姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                       --- 回転順序: ロール > ピッチ > ヨー
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 左腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000400  (=@c #IKErrorLeft)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setTargetLeftArmP(in double x, in double y, in double z,
+                            in double r, in double p, in double w, 
+                            in double percent, out unsigned long status);
+
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕を速度パーセント指定で，指令された位置・姿勢に動かします（ロボット座標系，
+     *         @ref SeparateInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref SeparateInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および右腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @note       把持位置（ツメ先）の軌道は直線とはなりません（予測できません）。 \n
+     *             把持位置を直線的に動かしたい場合は， @c setTargetRightArmP()． を使用してください。
+     * @param[in]  "x, y, z" 位置 [mm]。
+     * @param[in]  "r, p, w" 姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                       --- 回転順序: ロール > ピッチ > ヨー
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 右腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000100  (=@c #IKErrorRight)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double seqTargetRightArmP(in double x, in double y, in double z,
+                             in double r, in double p, in double w, 
+                             in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕を速度パーセント指定で，指令された位置・姿勢に動かします（ロボット座標系，
+     *         @ref SeparateInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref SeparateInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および左腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @note       把持位置（ツメ先）の軌道は直線とはなりません（予測できません）。 \n
+     *             把持位置を直線的に動かしたい場合は， @c setTargetLeftArmP()． を使用してください。
+     * @param[in]  "x, y, z" 位置 [mm]。
+     * @param[in]  "r, p, w" 姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                       --- 回転順序: ロール > ピッチ > ヨー
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 左腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000400  (=@c #IKErrorLeft)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double seqTargetLeftArmP(in double x, in double y, in double z,
+                            in double r, in double p, in double w, 
+                            in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕を速度パーセント指定で，指令された変換行列により動かします（ロボット座標系，
+     *         @ref StraightInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref StraightInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および右腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * 腰の動作中に本コマンドが呼ばれた場合においても，その時点の状態から
+     * @ref StraightInterpolationRef を行ないます。 \n
+     * そのため，動作中にエラーが発生する場合があります。エラーは @c getStatus() で取得してください。
+     * -# IK計算失敗: \n
+     *    @c getStatus() > @c 0x00800100  (=@c #IKErrorRight + @c #ProtectiveStopState) \n
+     *    一旦停止状態になるため，動作再開には @c exitProtectiveStop() が必要です。 \n
+     *    \n
+     * -# IK計算結果の関節角度が可動範囲外: \n
+     *    @c getStatus() > @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     * 
+     * @note       把持位置（ツメ先）を直線的に動かすため，動作速度が若干落ちます。 \n
+     *             動作速度優先の場合は， @c seqTargetRightArmMatrixP() を使用してください。
+     * @param[in]  rotMatrix 姿勢を表す 3x3回転行列。
+     * @param[in]  offset    位置ベクトル [mm]。
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 右腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000100  (=@c #IKErrorRight)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     *                       - 回転行列 破損（正規化無し）: \n
+     *                         @c 0x00080000  (=@c #RotationMatrixError)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setTargetRightArmMatrixP(in OpenHRP::DblArray9 rotMatrix, in OpenHRP::DblArray3 offset,
+                             in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕を速度パーセント指定で，指令された変換行列により動かします（ロボット座標系，
+     *         @ref StraightInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref StraightInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および左腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * 腰の動作中に本コマンドが呼ばれた場合においても，その時点の状態から
+     * @ref StraightInterpolationRef を行ないます。 \n
+     * そのため，動作中にエラーが発生する場合があります。エラーは @c getStatus() で取得してください。
+     * -# IK計算失敗: \n
+     *    @c getStatus() > @c 0x00800400  (=@c #IKErrorLeft + @c #ProtectiveStopState) \n
+     *    一旦停止状態になるため，動作再開には @c exitProtectiveStop() が必要です。 \n
+     *    \n
+     * -# IK計算結果の関節角度が可動範囲外: \n
+     *    @c getStatus() > @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     * 
+     * @note       把持位置（ツメ先）を直線的に動かすため，動作速度が若干落ちます。 \n
+     *             動作速度優先の場合は， @c seqTargetLeftArmMatrixP() を使用してください。
+     * @param[in]  rotMatrix 姿勢を表す 3x3回転行列。
+     * @param[in]  offset    位置ベクトル （x, y, z） [mm]。
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 左腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000400  (=@c #IKErrorLeft)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     *                       - 回転行列 破損（正規化無し）: \n
+     *                         @c 0x00080000  (=@c #RotationMatrixError)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double setTargetLeftArmMatrixP(in OpenHRP::DblArray9 rotMatrix, in OpenHRP::DblArray3 offset,
+                            in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕を速度パーセント指定で，指令された変換行列により動かします（ロボット座標系，
+     *         @ref SeparateInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref SeparateInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および右腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @note       把持位置（ツメ先）の軌道は直線とはなりません（予測できません）。 \n
+     *             把持位置を直線的に動かしたい場合は， @c setTargetRightArmMatrixP() を使用してください。
+     * @param[in]  rotMatrix 姿勢を表す 3x3回転行列。
+     * @param[in]  offset    位置ベクトル （x, y, z） [mm]。
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 右腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000100  (=@c #IKErrorRight)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00002000  (=@c #JointAngleLimitErrorRight)
+     *                       - 回転行列 破損（正規化無し）: \n
+     *                         @c 0x00080000  (=@c #RotationMatrixError)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double seqTargetRightArmMatrixP(in OpenHRP::DblArray9 rotMatrix, in OpenHRP::DblArray3 offset,
+                             in double percent, out unsigned long status);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕を速度パーセント指定で，指令された変換行列により動かします（ロボット座標系，
+     *         @ref SeparateInterpolationRef ）。
+     * 
+     * 指令値により，下記のように挙動が分かれます。 \n
+     * いずれにおいても，制御はただちに返されます。
+     * - 指令値が適正の場合は，ただちに動作開始します。 \n
+     *   軌道は把持位置（ツメ先）を@ref SeparateInterpolationRef します。 \n
+     *   \n
+     * - 指令値が適正範囲外の場合，および左腕動作中の場合は，エラーとなります。 \n
+     *   エラー内容は引数 @a status に返され，動作しません。
+     * 
+     * @note       把持位置（ツメ先）の軌道は直線とはなりません（予測できません）。 \n
+     *             把持位置を直線的に動かしたい場合は， @c setTargetLeftArmMatrixP() を使用してください。
+     * @param[in]  rotMatrix 姿勢を表す 3x3回転行列。
+     * @param[in]  offset    位置ベクトル （x, y, z） [mm]。
+     * @param[in]  percent   パーセントで指定する動作速度 [%]。
+     *                       - 最大速度に対するパーセント値となります （@c 100 = 最大速度）。
+     *                       - 左腕において一番遅い軸が 基準となります。
+     *                       - @c 100 より大きな値を指定した場合は，@c #SpeedSpecifyError が発生します。
+     * @param[out] status    下記状態が返されます。 \n
+     *                       - エラー無し: \n
+     *                         @c 0x0
+     *                       - 運動中部位への多重指令: \n
+     *                         @c 0x00000002  (=@c #BusyError)
+     *                       - 速度不良（ 1% 未満，ゼロ値，負値，速度オーバー）: \n
+     *                         @c 0x00000004  (=@c #SpeedSpecifyError)
+     *                       - 位置・姿勢不良: \n
+     *                           -# IK計算失敗: \n
+     *                              @c 0x00000400  (=@c #IKErrorLeft)
+     *                           -# IK計算結果の関節角度が可動範囲外: \n
+     *                              @c 0x00004000  (=@c #JointAngleLimitErrorLeft)
+     *                       - 回転行列 破損（正規化無し）: \n
+     *                         @c 0x00080000  (=@c #RotationMatrixError)
+     *                       - 一旦停止中: \n
+     *                         @c 0x00800000  (=@c #ProtectiveStopState)
+     *                       - サーボ異常: \n
+     *                         @c 0x01000000  (=@c #ServoEmergency)
+     * @return     実際に動作する時間 [sec]。 \n
+     *             エラーの場合，負値が返されます。
+     */
+    double seqTargetLeftArmMatrixP(in OpenHRP::DblArray9 rotMatrix, in OpenHRP::DblArray3 offset,
+                            in double percent, out unsigned long status);
+
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    // 
+    // Get Joint angles
+    // 
+    
+    /*!
+     *@ingroup ArmChestGroup_Ref
+     * @brief  腰軸の角度指令値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 関節への指令値を返します。
+     * 
+     * 腰軸動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには， @c getJointAngleChestReal() を使用してください。
+     * @param[out] y    腰ヨー軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAngleChest(out double y);
+
+    /*!
+     *@ingroup ArmChestGroup_Ref
+     * @brief  腰軸のエンコーダ値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の関節角を返します。 \n
+     * 腰軸のエンコーダから得られる値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 腰軸動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getJointAngleChest() と同等の値となります。
+     * @param[out] y    腰ヨー軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAngleChestReal(out double y);
+
+    /*!
+     *@ingroup ArmChestGroup_Ref
+     * @brief  腰軸の目標値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の目標角度を返します。 \n
+     * 
+     * 腰軸動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @param[out] y    腰ヨー軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAngleChestGoal(out double y);
+
+    /*!
+     *@ingroup ArmNeckGroup_Ref
+     * @brief  首軸の角度指令値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 各関節への指令値を返します。
+     * 
+     * 首軸動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには， @c getJointAnglesNeckReal() を使用してください。
+     * @param[out] y    首ヨー軸 [deg]。
+     * @param[out] p    首ピッチ軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAnglesNeck(out double y, out double p);
+
+    /*!
+     *@ingroup ArmNeckGroup_Ref
+     * @brief  首軸のエンコーダ値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 各関節のエンコーダから得られる値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 首軸動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getJointAnglesNeck() と同等の値となります。
+     * @param[out] y    首ヨー軸 [deg]。
+     * @param[out] p    首ピッチ軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAnglesNeckReal(out double y, out double p);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕の角度指令値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 各関節への指令値を返します。
+     * 
+     * 右腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには， @c getJointAnglesRightArmReal() を使用してください。
+     * @param[out] j00  右肩ヨー軸 [deg]。
+     * @param[out] j11  右肩ピッチ軸 [deg]。
+     * @param[out] j22  右肘ピッチ軸 [deg]。
+     * @param[out] j33  右手首ヨー軸 [deg]。
+     * @param[out] j44  右手首ピッチ軸 [deg]。
+     * @param[out] j55  右手首ロール軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAnglesRightArm(out double j00, out double j11, out double j22,
+                                out double j33, out double j44, out double j55);
+
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕のエンコーダ値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 各関節のエンコーダから得られる値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 右腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getJointAnglesRightArm() と同等の値となります。
+     * @param[out] j00  右肩ヨー軸 [deg]。
+     * @param[out] j11  右肩ピッチ軸 [deg]。
+     * @param[out] j22  右肘ピッチ軸 [deg]。
+     * @param[out] j33  右手首ヨー軸 [deg]。
+     * @param[out] j44  右手首ピッチ軸 [deg]。
+     * @param[out] j55  右手首ロール軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAnglesRightArmReal(out double j00, out double j11, out double j22,
+                                    out double j33, out double j44, out double j55);
+
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕の角度指令値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 各関節への指令値を返します。
+     * 
+     * 左腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには， @c getJointAnglesLeftArmReal() を使用してください。
+     * @param[out] j00  左肩ヨー軸 [deg]。
+     * @param[out] j11  左肩ピッチ軸 [deg]。
+     * @param[out] j22  左肘ピッチ軸 [deg]。
+     * @param[out] j33  左手首ヨー軸 [deg]。
+     * @param[out] j44  左手首ピッチ軸 [deg]。
+     * @param[out] j55  左手首ロール軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAnglesLeftArm(out double j00, out double j11, out double j22,
+                               out double j33, out double j44, out double j55);
+
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕のエンコーダ値を返します。
+     * 
+     * コマンドが呼ばれた瞬間の各関節角を返します。 \n
+     * 各関節のエンコーダから得られる値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 左腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getJointAnglesLeftArm() と同等の値となります。
+     * @param[out] j00  左肩ヨー軸 [deg]。
+     * @param[out] j11  左肩ピッチ軸 [deg]。
+     * @param[out] j22  左肘ピッチ軸 [deg]。
+     * @param[out] j33  左手首ヨー軸 [deg]。
+     * @param[out] j44  左手首ピッチ軸 [deg]。
+     * @param[out] j55  左手首ロール軸 [deg]。
+     * @return     無し。
+     */
+    void getJointAnglesLeftArmReal(out double j00, out double j11, out double j22,
+                                   out double j33, out double j44, out double j55);
+
+    
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    // 
+    // Get Hand Positions
+    // 
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右手把持位置（ツメ先）の位置・姿勢指令値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間のロボット指令値位置・姿勢を返します。 \n
+     * 各関節への指令値を元に，順運動学にて算出した値を返します。
+     * 
+     * 右腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには，サーボを ON する必要があります（リレー状態は無関係）。
+     * @param[out] "x, y, z"  位置 [mm]。
+     * @param[out] "r, p, w"  姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                        --- 回転順序: ロール > ピッチ > ヨー
+     * @return     無し。
+     */
+    void getPositionRightArm(out double x, out double y, out double z, 
+                             out double r, out double p, out double w);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右手把持位置（ツメ先）の位置・姿勢のエンコーダ値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間の実ロボットの手先位置・姿勢を返します。 \n
+     * 各関節のエンコーダから得られる値を元に，順運動学にて算出した値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 右腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getPositionRightArm() と同等の値となります。
+     * @param[out] "x, y, z"  位置 [mm]。
+     * @param[out] "r, p, w"  姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                        --- 回転順序: ロール > ピッチ > ヨー
+     * @return     無し。
+     */
+    void getPositionRightArmReal(out double x, out double y, out double z, 
+                                 out double r, out double p, out double w);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左手把持位置（ツメ先）の位置・姿勢指令値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間のロボット指令値の手先位置・姿勢を返します。 \n
+     * 各関節への指令値を元に，順運動学にて算出した値を返します。
+     * 
+     * 左腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには，サーボを ON する必要があります（リレー状態は無関係）。
+     * @param[out] "x, y, z"  位置 [mm]。
+     * @param[out] "r, p, w"  姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                        --- 回転順序: ロール > ピッチ > ヨー
+     * @return     無し。
+     */
+    void getPositionLeftArm(out double x, out double y, out double z, 
+                            out double r, out double p, out double w);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左手把持位置（ツメ先）の位置・姿勢のエンコーダ値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間の実ロボットの手先位置・姿勢を返します。 \n
+     * 各関節のエンコーダから得られる値を元に，順運動学にて算出した値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 左腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getPositionLeftArm() と同等の値となります。
+     * @param[out] "x, y, z"  位置 [mm]。
+     * @param[out] "r, p, w"  姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                        --- 回転順序: ロール > ピッチ > ヨー
+     * @return     無し。
+     */
+    void getPositionLeftArmReal(out double x, out double y, out double z, 
+                                out double r, out double p, out double w);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右手把持位置（ツメ先）の姿勢回転行列・位置ベクトル指令値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間のロボット指令値の手先位置姿勢を
+     * 3x3姿勢回転行列・位置ベクトルとして返します。 \n
+     * 各関節への指令値を元に，順運動学にて算出した値を返します。
+     * 
+     * 右腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには，サーボを ON する必要があります（リレー状態は無関係）。
+     * @param[out] rotMatrix  姿勢を表す 3x3回転行列。
+     * @param[out] offset     位置ベクトル （x, y, z） [mm]。
+     * @return     無し。
+     */
+    void getPositionRightArmMatrix(out OpenHRP::DblArray9 rotMatrix, 
+                                   out OpenHRP::DblArray3 offset);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右手把持位置（ツメ先）の姿勢回転行列・位置ベクトルのエンコーダ値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間の実ロボットの手先位置姿勢を
+     * 3x3姿勢回転行列・位置ベクトルとして返します。 \n
+     * 各関節のエンコーダから得られる値を元に，順運動学にて算出した値を返します。 \n
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 右腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getPositionRightArmMatrix() と同等の値となります。
+     * @param[out] rotMatrix  姿勢を表す 3x3回転行列。
+     * @param[out] offset     位置ベクトル （x, y, z） [mm]。
+     * @return     無し。
+     */
+    void getPositionRightArmMatrixReal(out OpenHRP::DblArray9 rotMatrix, 
+                                       out OpenHRP::DblArray3 offset);
+
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左手把持位置（ツメ先）の姿勢回転行列・位置ベクトル指令値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間のロボット指令値の手先位置姿勢を
+     * 3x3姿勢回転行列・位置ベクトルとして返します。 \n
+     * 各関節への指令値を元に，順運動学にて算出した値を返します。
+     * 
+     * 左腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * @note       現在の状態を知るには，サーボを ON する必要があります（リレー状態は無関係）。
+     * @param[out] rotMatrix  姿勢を表す 3x3回転行列。
+     * @param[out] offset     位置ベクトル （x, y, z） [mm]。
+     * @return     無し。
+     */
+    void getPositionLeftArmMatrix(out OpenHRP::DblArray9 rotMatrix,
+                                  out OpenHRP::DblArray3 offset);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左手把持位置（ツメ先）の姿勢回転行列・位置ベクトルのエンコーダ値を返します （ロボット座標系）。
+     * 
+     * コマンドが呼ばれた瞬間の実ロボットの手先位置姿勢を
+     * 3x3姿勢回転行列・位置ベクトルとして返します。 \n
+     * 各関節のエンコーダから得られる値を元に，順運動学にて算出した値を返します。
+     * サーボ，リレーの状態には影響されません。
+     * 
+     * 左腕動作中においても実行（取得）できます。 \n
+     * 変数に代入後，ただちに制御を返します。
+     * 
+     * オフラインティーチングなど，サーボを入れずに状態を取得したい場合に使用します。
+     * 
+     * @note       リレー・サーボON状態の場合は，@c getPositionLeftArmMatrix() と同等の値となります。
+     * @param[out] rotMatrix  姿勢を表す 3x3回転行列。
+     * @param[out] offset     位置ベクトル （x, y, z） [mm]。
+     * @return     無し。
+     */
+    void getPositionLeftArmMatrixReal(out OpenHRP::DblArray9 rotMatrix,
+                                      out OpenHRP::DblArray3 offset);
+    
+    
+    ///////////2/////////3/////////4/////////5/////////6/////////7/////////
+    // 
+    // get results of the IK calculation
+    // 
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右腕の各軸関節角を，指定された腰軸角度・右手座標を元に算出します（ロボット座標系）。
+     * 
+     * 逆運動学により，座標から関節角への変換を行なうのみです。ロボットへの影響はありません。 \n
+     * @if ALL
+     * @c addSplineAnglePathRight()． で使用する他に，予定動作後の関節角を
+     * 事前にチェックする用途にも使用できます。 \n
+     * ＜スプライン公開時に下文と差し替え＞
+     * @endif
+     * 予定動作後の関節角を事前にチェックする用途に使用できます。 \n
+     * \n
+     * 指定された腰軸角度および位置・姿勢を元に，逆運動学の計算を行ないます。 \n
+     * 右腕・腰軸それぞれが動作中においても実行（取得）できます。 \n
+     * \n
+     * 計算後ただちに制御を返します。 \n
+     * 
+     * @param[in]     chest      腰軸 [deg]。
+     * @param[in]     "x, y, z"  位置 [mm]。
+     * @param[in]     "r, p, w"  姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                           --- 回転順序: ロール > ピッチ > ヨー
+     * @param[out]    j00        右肩ヨー軸 [deg]。
+     * @param[out]    j11        右肩ピッチ軸 [deg]。
+     * @param[out]    j22        右肘ピッチ軸 [deg]。
+     * @param[out]    j33        右手首ヨー軸 [deg]。
+     * @param[out]    j44        右手首ピッチ軸 [deg]。
+     * @param[out]    j55        右手首ロール軸 [deg]。
+     * @param[in,out] maxIK      逆運動学（IK）の収束計算回数。
+     *                           @li [in ] 計算に許容する計算回数。
+     *                           @li [out] 計算に要した計算回数。
+	 *							 - 計算に成功した時: 200
+	 *							 - 計算に失敗した時:-200
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗。
+     */
+    boolean jointAnglesFromConfigurationRight(in double chest,
+                                              in double x, in double y, in double z, 
+                                              in double r, in double p, in double w,
+                                              out double j00, out double j11, out double j22, 
+                                              out double j33, out double j44, out double j55,
+                                              inout long maxIK);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左腕の各軸関節角を，指定された腰軸角度・左手座標を元に算出します（ロボット座標系）。
+     * 
+     * 逆運動学により，座標から関節角への変換を行なうのみです。ロボットへの影響はありません。 \n
+     * @if ALL
+     * @c addSplineAnglePathLeft()． で使用する他に，予定動作後の関節角を
+     *   事前にチェックする用途にも使用できます。 \n
+     * ＜スプライン公開時に下文と差し替え＞
+     * @endif
+     * 予定動作後の関節角を事前にチェックする用途に使用できます。 \n
+     * \n
+     * 指定された腰軸角度および位置・姿勢を元に，逆運動学の計算を行ないます。 \n
+     * 左腕・腰軸それぞれが動作中においても実行（取得）できます。 \n
+     * \n
+     * 変数に代入後，ただちに制御を返します。 \n
+     * 
+     * @param[in]     chest      腰軸 [deg]。
+     * @param[in]     "x, y, z"  位置 [mm]。
+     * @param[in]     "r, p, w"  姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                           --- 回転順序: ロール > ピッチ > ヨー
+     * @param[out]    j00        左肩ヨー軸 [deg]。
+     * @param[out]    j11        左肩ピッチ軸 [deg]。
+     * @param[out]    j22        左肘ピッチ軸 [deg]。
+     * @param[out]    j33        左手首ヨー軸 [deg]。
+     * @param[out]    j44        左手首ピッチ軸 [deg]。
+     * @param[out]    j55        左手首ロール軸 [deg]。
+     * @param[in,out] maxIK      逆運動学（IK）の収束計算回数。
+     *                           @li [in ] 計算に許容する計算回数。
+     *                           @li [out] 計算に要した計算回数。
+	 *							 - 計算に成功した時: 200
+	 *							 - 計算に失敗した時:-200
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗。
+     */
+    boolean jointAnglesFromConfigurationLeft(in double chest,
+                                             in double x, in double y, in double z, 
+                                             in double r, in double p, in double w,
+                                             out double j00, out double j11, out double j22,
+                                             out double j33, out double j44, out double j55,
+                                             inout long maxIK);
+    
+    /*!
+     *@ingroup ArmRightGroup_Ref
+     * @brief  右手の位置・姿勢を，指定された腰軸・右腕関節角を元に算出します（ロボット座標系）。
+     * 
+     * 順運動学により，関節角から位置・姿勢への変換を行なうのみです。ロボットへの影響はありません。 \n
+     * 関節角により動かす場合の，座標の事前チェックなどに使用できます。 \n
+     * \n
+     * 指定された腰軸および右腕の各関節角を元に，順運動学の計算を行ないます。 \n
+     * 右腕・腰軸それぞれが動作中においても実行（取得）できます。 \n
+     * \n
+     * 変数に代入後，ただちに制御を返します。 \n
+     * 
+     * @param[in]     j00          腰ヨー軸 [deg]。
+     * @param[in]     j11          右肩ヨー軸 [deg]。
+     * @param[in]     j22          右肩ピッチ軸 [deg]。
+     * @param[in]     j33          右肘ピッチ軸 [deg]。
+     * @param[in]     j44          右手首ヨー軸 [deg]。
+     * @param[in]     j55          右手首ピッチ軸 [deg]。
+     * @param[in]     j66          右手首ロール軸 [deg]。
+     * @param[out]    "x, y, z"    位置 [mm]。
+     * @param[out]    "r, p, w"    姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                             --- 回転順序: ロール > ピッチ > ヨー
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗（動作範囲外の場合）。
+     */
+    boolean configurationFromJointAnglesRight(in double j00, 
+                                              in double j11, in double j22, in double j33,
+                                              in double j44, in double j55, in double j66,
+                                              out double x, out double y, out double z, 
+                                              out double r, out double p, out double w);
+    
+    /*!
+     *@ingroup ArmLeftGroup_Ref
+     * @brief  左手の位置・姿勢を，指定された腰軸・左腕関節角を元に算出します（ロボット座標系）。
+     * @brief  左腕を指定した関節角に動かした場合の位置・姿勢を返します（ロボット座標系）。
+     * 
+     * 順運動学により，関節角から位置・姿勢への変換を行なうのみです。ロボットへの影響はありません。 \n
+     * 関節角により動かす場合の，座標の事前チェックなどに使用できます。 \n
+     * \n
+     * 指定された腰軸および左腕の各関節角を元に，順運動学の計算を行ないます。 \n
+     * 左腕・腰軸それぞれが動作中においても実行（取得）できます。 \n
+     * \n
+     * 変数に代入後，ただちに制御を返します。 \n
+     * 
+     * @param[in]     j00          腰ヨー軸 [deg]。
+     * @param[in]     j11          左肩ヨー軸 [deg]。
+     * @param[in]     j22          左肩ピッチ軸 [deg]。
+     * @param[in]     j33          左肘ピッチ軸 [deg]。
+     * @param[in]     j44          左手首ヨー軸 [deg]。
+     * @param[in]     j55          左手首ピッチ軸 [deg]。
+     * @param[in]     j66          左手首ロール軸 [deg]。
+     * @param[out]    "x, y, z"    位置 [mm]。
+     * @param[out]    "r, p, w"    姿勢角（ロール・ピッチ・ヨー） [deg]。
+     *                             --- 回転順序: ロール > ピッチ > ヨー
+     * @retval        "true  (=1)" 成功。
+     * @retval        "false (=0)" 失敗（動作範囲外の場合）。
+     */
+    boolean configurationFromJointAnglesLeft(in double j00, 
+                                             in double j11, in double j22, in double j33, 
+                                             in double j44, in double j55, in double j66,
+                                             out double x, out double y, out double z,
+                                             out double r, out double p, out double w);
+
+    /*!
+     *@ingroup armCommonGroup_Ref
+     * @brief  ロボットコントローラ内 IDLファイルのバージョン情報を取得します。
+     * 
+     * @if ALL
+     * 本IDLファイルのバージョン情報については，@c #versionStringIDL， @c #versionDateIDL を参照してください。  
+     * @endif
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba5"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:42:50 2008 +0900"
+     * @return     無し。
+     */
+    void getIDLVersionString(out string revision, out string date);
+
+    /*!
+     *@ingroup armCommonGroup_Ref
+     * @brief  ロボットコントローラ内 ソースファイルのバージョン情報を取得します。
+     * 
+     * @note       出力フォーマットは，予告なく変更することがあります。
+     * @param[out] revision リビジョン文字列。 \n
+     *                      （例） @c "47:6ee56220cba6"
+     * @param[out] date     最終更新日（文字列）。 \n
+     *                      （例） @c "Fri Apr 04 11:52:50 2008 +0900"
+     * @return     無し。
+     */
+    void getSrcVersionString(out string revision, out string date);
+
+	/*!
+	 * 本IDLファイル リポジトリリビジョン
+	 */
+    const string versionStringIDL = "";
+
+	/*!
+	 * 本IDLファイル リポジトリ最終更新日時
+	 */
+    const string versionDateIDL = "";
+};
+
+#endif
+
+//EOF
+
