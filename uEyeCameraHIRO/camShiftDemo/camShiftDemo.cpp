@@ -1,16 +1,16 @@
-#include "uEyeCamera.h" /* uEyeCameraƒLƒƒƒvƒ`ƒƒ—pƒwƒbƒ_ */
+#include "uEyeCamera.h" /* uEyeCameraã‚­ãƒ£ãƒ—ãƒãƒ£ç”¨ãƒ˜ãƒƒãƒ€ */
 #include <cv.h> /* openCV */
 #include <highgui.h> /* openCV */
 #define _USE_ROBOT
 #ifdef _USE_ROBOT
 #include "Robot.hpp"
-
+//   JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2  JOSE 2
 
 #ifndef IPADDR
 #define IPADDR "192.168.128.3"
 #endif
 #endif
-#include "camShiftDemo.h" /* ƒfƒ‚—pƒwƒbƒ_ */
+#include "camShiftDemo.h" /* ãƒ‡ãƒ¢ç”¨ãƒ˜ãƒƒãƒ€ */
 
 
 #include <windows.h>
@@ -42,7 +42,7 @@ CamshiftDemo::game(void* param)
 
 			time (&(camshift->start));
 			camshift->firstime = false;
-			PlaySound("C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\jkp.wav", NULL,  (SND_SYNC|SND_FILENAME));
+			PlaySound("C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\jkp.wav", NULL,  (SND_SYNC|SND_FILENAME));
 
 		}
 
@@ -56,7 +56,7 @@ CamshiftDemo::game(void* param)
 	{
 		// play RESPONSE again
 		time (&camshift->start);
-		//std::string song = "C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\";
+		//std::string song = "C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\";
 		//song.append(jkp);
 		//song.append(".wav");
 		
@@ -67,10 +67,8 @@ CamshiftDemo::game(void* param)
 		camshift->robot.rarm.moveFore(1,3,0,speed);
 		fingermoveABC("18884444","33334444","19884344",camshift->port_a,camshift->port_b,camshift->port_c);
 		camshift->robot.rarm.moveFore(0,-2,0,speed * 2);
-		PlaySound("C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\jkp.wav", NULL,  (SND_ASYNC|SND_FILENAME));
+		PlaySound("C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\jkp.wav", NULL,  (SND_ASYNC|SND_FILENAME));
 		
-		
-
 		camshift->robot.rarm.moveFore(0,2,0,speed);
 		camshift->robot.rarm.moveFore(-1,-3,0,speed * 2);
 		camshift->robot.rarm.moveFore(0,2,0,speed);	
@@ -97,47 +95,69 @@ CamshiftDemo::game(void* param)
 		}
 	
 
-		cout << "human: " << jkp << " fingers: " << camshift->fingers << endl;
-		int lose_mode = camshift->lose_mode;
+
+		int key = camshift->lose_mode;  
+		// RANDOM PLAY OR WIN LOSE ?
+		if ( key == 2 ) //RANDOMIZE KEY
+		{
+			key = rand() % 3;
+		}
+		cout << "human: " << jkp << "key: " << key << " fingers: " << camshift->fingers << endl;
 
 		if (jkp.compare("pa")==0 )
 		{
-			//PA
-			if (lose_mode==0)
+			//HUMAN PLAYS PA
+			switch(key) {
+			case 0: // ROBOT PLAYS TO WIN
 				fingermoveABC("18883333","85557fff","7fffafaf",camshift->port_a,camshift->port_b,camshift->port_c);
-			else
+				break;
+			case 1: // TO LOSE
 				fingermoveABC("18883333","33334444","18883333",camshift->port_a,camshift->port_b,camshift->port_c);
-
-			Sleep(300);
+				break;
+			case 2: // TO DRAW
+				fingermoveABC("18883333","33334444","18883333",camshift->port_a,camshift->port_b,camshift->port_c);
+				break;
+			}
 		}
 		
 		if (jkp.compare("choki")==0 )
 		{
-			// CHOKI
-			if (lose_mode==0)
+			//HUMAN PLAYS CHOKI
+			switch(key) {
+			case 0: // ROBOT PLAYS TO WIN
 				fingermoveABC("18883333","33334444","18883333",camshift->port_a,camshift->port_b,camshift->port_c);
-			else
+				break;
+			case 1: // TO LOSE
 				fingermoveABC("7fff7fff","7fff7fff","7fff7fff",camshift->port_a,camshift->port_b,camshift->port_c);
-				
-			Sleep(300);
-
+				break;
+			case 2: // TO DRAW
+				fingermoveABC("18883333","85557fff","7fffafaf",camshift->port_a,camshift->port_b,camshift->port_c);
+				break;
+			}
 		}
 		
 		if (jkp.compare("gu")==0 )
 		{
-			//GU
-			if(lose_mode ==0)
+			// HUMAN PLAYS GU
+			switch(key) {
+			case 0: // ROBOT PLAYS TO WIN
 				fingermoveABC("7fff7fff","7fff7fff","7fff7fff",camshift->port_a,camshift->port_b,camshift->port_c);
-			else
+				break;
+			case 1: // TO LOSE
 				fingermoveABC("18883333","85557fff","7fffafaf",camshift->port_a,camshift->port_b,camshift->port_c);
-
-			Sleep(300);
-
+				break;
+			case 2: // TO DRAW
+				fingermoveABC("18883333","33334444","18883333",camshift->port_a,camshift->port_b,camshift->port_c);
+				break;
+			}
 		}
+		//Sleep(300);
+
 		// ---------------------------------------------
 
 		// Some miliseconds later....
 		// CHECK WIN OR LOOSE
+		/*
 		findfingers(camshift);
 		fingers = camshift->fingers;
 
@@ -159,12 +179,12 @@ CamshiftDemo::game(void* param)
 		{
 			if(lose_mode ==0)
 			{
-					PlaySound("C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\make.wav", NULL,  (SND_ASYNC|SND_FILENAME));
+					PlaySound("C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\make.wav", NULL,  (SND_ASYNC|SND_FILENAME));
 					cout << "jkp1 = jkp " << "hiro win" << endl;
 			}
 			else
 			{
-					PlaySound("C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\kachi.wav", NULL,  (SND_ASYNC|SND_FILENAME));
+					PlaySound("C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\kachi.wav", NULL,  (SND_ASYNC|SND_FILENAME));
 					cout << "jkp1 = jkp " << "human win" << endl;
 			
 			}
@@ -188,15 +208,15 @@ CamshiftDemo::game(void* param)
 			  )
 			{
 				cout << "huma win " << endl;
-				PlaySound("C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\kachi.wav", NULL,  (SND_ASYNC|SND_FILENAME));
+				PlaySound("C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\kachi.wav", NULL,  (SND_ASYNC|SND_FILENAME));
 
 			}
 
 		
 		
-		}//@WIN OR LOOSE CHECK END
-
-
+		}//ã€€WIN OR LOOSE CHECK END
+        */
+		Sleep(600);
 
 
 	}// make janken moves
@@ -544,23 +564,31 @@ CamshiftDemo::findfingers(void* param)
 		out << fingers;
 		s = out.str();
 		msg.append( "Yonezawa University");
-		cv::putText(image2,msg,cv::Point(20,45),cv::FONT_HERSHEY_SCRIPT_SIMPLEX,double(1.4),CV_RGB(200,200,200),2,8,false);
+		//cv::putText(image2,msg,cv::Point(20,45),cv::FONT_HERSHEY_SCRIPT_SIMPLEX,double(1.4),CV_RGB(200,200,200),2,8,false);
+
 		msg ="";
-		
 		msg.append( "Tadakuma+Tsumaki Lab");
-		cv::putText(image2,msg,cv::Point(20,100),cv::FONT_HERSHEY_PLAIN,double(1.6),CV_RGB(200,200,200),2,8,false);
+		//cv::putText(image2,msg,cv::Point(20,100),cv::FONT_HERSHEY_PLAIN,double(1.6),CV_RGB(200,200,200),2,8,false);
+		
 		msg ="";
-		msg.append( "Jose Berengueres");
-		cv::putText(image2,msg,cv::Point(20,125),cv::FONT_HERSHEY_PLAIN,double(1.2),CV_RGB(200,200,200),2,8,false);
+		msg.append( "0=GU  1-3=CHOKI  4-10=PA");
+		cv::putText(image2,msg,cv::Point(200,20),cv::FONT_HERSHEY_PLAIN,double(1.2),CV_RGB(200,200,200),2,8,false);
+
 		msg ="";
-		msg.append( "Maid Robo 1.0");
-		cv::putText(image2,msg,cv::Point(20,150),cv::FONT_HERSHEY_PLAIN,double(1.2),CV_RGB(200,200,200),2,8,false);
-		msg ="";
-		msg.append("f: ");
+		msg.append("NINSHIKI : ");
 		msg.append( s );
-		msg.append( " " );
-		//msg.append( jkp );
-		cv::putText(image2,msg,cv::Point(20,175),cv::FONT_HERSHEY_PLAIN,double(1.2),CV_RGB(200,200,200),2,8,false);
+		cv::putText(image2,msg,cv::Point(20,20),cv::FONT_HERSHEY_PLAIN,double(1.2),CV_RGB(200,200,200),2,8,false);
+
+		msg ="";
+		msg.append("'r' 2, 'l' 1, 'w' 0; robot play mode = "  );		
+		int lose_mode = camshift->lose_mode;
+		std::stringstream out2;
+		out2 << lose_mode;
+		s="";
+		s = out2.str();
+		msg.append( s );
+
+		cv::putText(image2,msg,cv::Point(20,465),cv::FONT_HERSHEY_PLAIN,double(1.4),CV_RGB(200,200,200),2,8,false);
 
 		//cv::cvtColor(image2, image,1);	
 		cv::cvtColor(image2, image,1);	
@@ -573,7 +601,7 @@ CamshiftDemo::findfingers(void* param)
 
 
 /**
-* ƒ}ƒEƒXƒCƒxƒ“ƒgˆ—iƒR[ƒ‹ƒoƒbƒNŠÖ”j
+* ãƒã‚¦ã‚¹ã‚¤ãƒ™ãƒ³ãƒˆå‡¦ç†ï¼ˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°ï¼‰
 */
 
 
@@ -595,7 +623,7 @@ CamshiftDemo::onMouse(int event, int x, int y, int flags, void* param)
 	if(iplimg->origin)
 		y = iplimg->height - y;
 
-	/// ‘I‘ğ—ÌˆæŒvZi¶ƒhƒ‰ƒbƒO’†j
+	/// é¸æŠé ˜åŸŸè¨ˆç®—ï¼ˆå·¦ãƒ‰ãƒ©ãƒƒã‚°ä¸­ï¼‰
 	if(select_object) {
 		selection.x = CV_IMIN(x, origin.x);
         selection.y = CV_IMIN(y, origin.y);
@@ -610,14 +638,14 @@ CamshiftDemo::onMouse(int event, int x, int y, int flags, void* param)
         selection.height -= selection.y;
     }
 
-	/// ƒ}ƒEƒXƒCƒxƒ“ƒgi¶ƒhƒ‰ƒbƒO‚É‚æ‚é—Ìˆæ‘I‘ğjŠJnEI—¹
+	/// ãƒã‚¦ã‚¹ã‚¤ãƒ™ãƒ³ãƒˆï¼ˆå·¦ãƒ‰ãƒ©ãƒƒã‚°ã«ã‚ˆã‚‹é ˜åŸŸé¸æŠï¼‰é–‹å§‹ãƒ»çµ‚äº†
 	switch(event) {
-    case CV_EVENT_LBUTTONDOWN: // ‘I‘ğŠJn
+    case CV_EVENT_LBUTTONDOWN: // é¸æŠé–‹å§‹
 		origin = cv::Point2i(x,y);
 		selection = cv::Rect(x,y,0,0);
 		select_object = 1;
         break;
-    case CV_EVENT_LBUTTONUP: // ‘I‘ğI—¹
+    case CV_EVENT_LBUTTONUP: // é¸æŠçµ‚äº†
         select_object = 0;
         if(selection.width > 0 && selection.height > 0)
             track_object = -1;
@@ -626,11 +654,11 @@ CamshiftDemo::onMouse(int event, int x, int y, int flags, void* param)
 }
 
 /**
-* ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+* ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 */
 CamshiftDemo::CamshiftDemo()
 #ifdef _USE_ROBOT
-:dEnable(1.0), fingersensitivity(45), vmin(10), vmax(256), smin(30), robot(IPADDR),
+:dEnable(1.0), fingersensitivity(40), vmin(10), vmax(256), smin(30), robot(IPADDR),
 pan_min(-60), pan_max(60), tilt_min(-30), tilt_max(20)
 #else
 :dEnable(1.0), vmin(10), vmax(256), smin(30)
@@ -657,7 +685,7 @@ CamshiftDemo::~CamshiftDemo()
 }
 
 /** 
-*  ‰æ–Ê‚Ì•\¦
+*  ç”»é¢ã®è¡¨ç¤º
 */
 void
 CamshiftDemo::showImage()
@@ -686,7 +714,7 @@ CamshiftDemo::showImage()
 #endif
 
 	while(1) {
-		// ƒLƒƒƒvƒ`ƒƒ
+		// ã‚­ãƒ£ãƒ—ãƒãƒ£
 		frame = &ucam->queryFrame(0);
         if(!frame)
             break;
@@ -696,16 +724,16 @@ CamshiftDemo::showImage()
 
 		cv::cvtColor(image, hsv, CV_BGR2HSV);
 
-		// ƒgƒ‰ƒbƒLƒ“ƒO’† or ‘I‘ğ’†
+		// ãƒˆãƒ©ãƒƒã‚­ãƒ³ã‚°ä¸­ or é¸æŠä¸­
 		if(track_object) {
 			int _vmin = vmin, _vmax = vmax;
 			cv::inRange(hsv, cv::Scalar(0, smin, CV_IMIN(_vmin,_vmax),0),
 				cv::Scalar(180, 256, CV_IMAX(_vmin, _vmax), 0), mask);
 			cv::split(hsv, planes);
 
-			// ‘I‘ğI—¹’¼Œã
+			// é¸æŠçµ‚äº†ç›´å¾Œ
 			if(track_object < 0) {
-				// ‘I‘ğ—Ìˆæ‚ÌƒqƒXƒgƒOƒ‰ƒ€ì¬
+				// é¸æŠé ˜åŸŸã®ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ ä½œæˆ
 				double min_val = 0.f;
 				double max_val = 0.f;
 				const int channels[] = {0};
@@ -722,7 +750,7 @@ CamshiftDemo::showImage()
 				track_window = selection;
 				track_object = 1;
 
-				// ƒqƒXƒgƒOƒ‰ƒ€•`‰æ
+				// ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ æç”»
 				for(int i=0; i<histimg.cols; i++) {
 					int j = static_cast<int>(i*180.0/histimg.cols);
 					int val = cv::saturate_cast<int>(hist.at<float>(j)*histimg.rows/255);
@@ -770,7 +798,7 @@ CamshiftDemo::showImage()
 #ifdef _USE_ROBOT
 			// robot
 			if((int(track_box.size.width)|int(track_box.size.height))==0) {
-				robot.faceTo(0, 0, 60);
+				//robot.faceTo(0, 0, 60);
 				track_window.x = 320;
 				track_window.y = 240;
 			} else {
@@ -790,7 +818,7 @@ CamshiftDemo::showImage()
 
 		} /* tracK_object */
 
-		// ‘I‘ğ—Ìˆæ‚ÌƒlƒKƒ|ƒW”½“]
+		// é¸æŠé ˜åŸŸã®ãƒã‚¬ãƒã‚¸åè»¢
 		if(select_object && selection.width > 0 && selection.height > 0) {
 			cv::Mat roi(image, selection);
 			cv::bitwise_xor(roi, cv::Scalar::all(255), roi);
@@ -815,7 +843,13 @@ CamshiftDemo::showImage()
 				p_mode ^= 1;
 				break;
 			case 'l':
-				lose_mode ^= 1;
+				lose_mode = 1;
+				break;
+			case 'w':
+				lose_mode = 0;
+				break;
+			case 'r':
+				lose_mode = 2;
 				break;
 
 
@@ -823,22 +857,28 @@ CamshiftDemo::showImage()
 		}
 	}
 	ucam->close();
-	PlaySound("C:\\Documents and Settings\\hrpuser\\ƒfƒXƒNƒgƒbƒv\\asobo.wav", NULL,  (SND_SYNC|SND_FILENAME));
+	PlaySound("C:\\Documents and Settings\\hrpuser\\ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—\\asobo.wav", NULL,  (SND_SYNC|SND_FILENAME));
 
+	fingermoveABC("7fff7fff","7fff7fff","7fff7fff",port_a,port_b,port_c);
+    Sleep(300);
 	cvDestroyWindow("CamShiftDemo");
 	cvDestroyWindow("Histogram");
 }
 
 /**
-* ƒfƒ‚ƒvƒƒOƒ‰ƒ€‚ÌÀs
+* ãƒ‡ãƒ¢ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®å®Ÿè¡Œ
 */
 void
 CamshiftDemo::run()
 {
 
+	srand ( time(NULL) );
+
+
 // INI
 	fingers = 0;
 	firstime = true;
+
 
 // PORT INIT -------------------------------------------------------------
 	port_a = open_port_a("COM");
@@ -853,12 +893,12 @@ CamshiftDemo::run()
 	if(port_c < 0)
 		cout << "return -1";
 
-	// ƒ|[ƒg‚Ìİ’è
+	// ãƒãƒ¼ãƒˆã®è¨­å®š
 	serial_port_a_params(port_a,115200, 8, ONESTOPBIT, NOPARITY);
 	serial_port_b_params(port_b,115200, 8, ONESTOPBIT, NOPARITY);
 	serial_port_c_params(port_c,115200, 8, ONESTOPBIT, NOPARITY);
 
-	// ƒJƒƒ‰ƒpƒ‰ƒ[ƒ^‚Ìİ’è
+	// ã‚«ãƒ¡ãƒ©ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®è¨­å®š
 	for(int i=0; i<cam_num; i++) {
 		//ucam->setBinning(i, IS_BINNING_4X_VERTICAL, IS_BINNING_4X_HORIZONTAL);		
 		//ucam->setImageAOI(i, 0, 0, 640, 480);
@@ -879,7 +919,7 @@ CamshiftDemo::run()
 
 
 /**
-* main ŠÖ”
+* main é–¢æ•°
 */
 int
 main(int argc, char *argv[])
@@ -895,7 +935,7 @@ main(int argc, char *argv[])
 
 // PORTS -----------------------------------
 
-// ƒ|[ƒgA‚É1byte‘‚«‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆAã«1byteæ›¸ãè¾¼ã‚€é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::port_a_putc(char c, HANDLE port_a){
   char buf = c;
 
@@ -904,7 +944,7 @@ int CamshiftDemo::port_a_putc(char c, HANDLE port_a){
   return c;
 }
 
-// ƒ|[ƒgB‚É1byte‘‚«‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆBã«1byteæ›¸ãè¾¼ã‚€é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::port_b_putc(char c, HANDLE port_b){
   char buf = c;
 
@@ -912,7 +952,7 @@ int CamshiftDemo::port_b_putc(char c, HANDLE port_b){
 
   return c;
 }
-// ƒ|[ƒgC‚É1byte‘‚«‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆCã«1byteæ›¸ãè¾¼ã‚€é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::port_c_putc(char c, HANDLE port_c){
   char buf = c;
 
@@ -927,49 +967,49 @@ int CamshiftDemo::serial_port_a_params (HANDLE port_a,
   DCB dcb;
 
   dcb.DCBlength = sizeof(DCB);
-  // İ’è‚ğ“Ç‚İ‚Ş
+  // è¨­å®šã‚’èª­ã¿è¾¼ã‚€
   GetCommState(port_a, &dcb);
-  dcb.BaudRate = baudrate;  // ƒ{[ƒŒ[ƒg
-  dcb.ByteSize = byte_size; // ƒrƒbƒg’·
-  dcb.StopBits = stop_bits; // ƒXƒgƒbƒvƒrƒbƒg
-  dcb.Parity = parity; 		// ƒpƒŠƒeƒB
-  // İ’è‚·‚é
+  dcb.BaudRate = baudrate;  // ãƒœãƒ¼ãƒ¬ãƒ¼ãƒˆ
+  dcb.ByteSize = byte_size; // ãƒ“ãƒƒãƒˆé•·
+  dcb.StopBits = stop_bits; // ã‚¹ãƒˆãƒƒãƒ—ãƒ“ãƒƒãƒˆ
+  dcb.Parity = parity; 		// ãƒ‘ãƒªãƒ†ã‚£
+  // è¨­å®šã™ã‚‹
   SetCommState(port_a, &dcb);
 
   return 1;
 }
-// ƒ|[ƒgB‚ğİ’è‚·‚éŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆBã‚’è¨­å®šã™ã‚‹é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::serial_port_b_params (HANDLE port_b,
 			int baudrate, int byte_size,
 			int stop_bits, int parity){
   DCB dcb;
 
   dcb.DCBlength = sizeof(DCB);
-  // İ’è‚ğ“Ç‚İ‚Ş
+  // è¨­å®šã‚’èª­ã¿è¾¼ã‚€
   GetCommState(port_b, &dcb);
-  dcb.BaudRate = baudrate;  // ƒ{[ƒŒ[ƒg
-  dcb.ByteSize = byte_size; // ƒrƒbƒg’·
-  dcb.StopBits = stop_bits; // ƒXƒgƒbƒvƒrƒbƒg
-  dcb.Parity = parity; 		// ƒpƒŠƒeƒB
-  // İ’è‚·‚é
+  dcb.BaudRate = baudrate;  // ãƒœãƒ¼ãƒ¬ãƒ¼ãƒˆ
+  dcb.ByteSize = byte_size; // ãƒ“ãƒƒãƒˆé•·
+  dcb.StopBits = stop_bits; // ã‚¹ãƒˆãƒƒãƒ—ãƒ“ãƒƒãƒˆ
+  dcb.Parity = parity; 		// ãƒ‘ãƒªãƒ†ã‚£
+  // è¨­å®šã™ã‚‹
   SetCommState(port_b, &dcb);
 
   return 1;
 }
-// ƒ|[ƒgC‚ğİ’è‚·‚éŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆCã‚’è¨­å®šã™ã‚‹é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::serial_port_c_params (HANDLE port_c,
 			int baudrate, int byte_size,
 			int stop_bits, int parity){
   DCB dcb;
 
   dcb.DCBlength = sizeof(DCB);
-  // İ’è‚ğ“Ç‚İ‚Ş
+  // è¨­å®šã‚’èª­ã¿è¾¼ã‚€
   GetCommState(port_c, &dcb);
-  dcb.BaudRate = baudrate;  // ƒ{[ƒŒ[ƒg
-  dcb.ByteSize = byte_size; // ƒrƒbƒg’·
-  dcb.StopBits = stop_bits; // ƒXƒgƒbƒvƒrƒbƒg
-  dcb.Parity = parity; 		// ƒpƒŠƒeƒB
-  // İ’è‚·‚é
+  dcb.BaudRate = baudrate;  // ãƒœãƒ¼ãƒ¬ãƒ¼ãƒˆ
+  dcb.ByteSize = byte_size; // ãƒ“ãƒƒãƒˆé•·
+  dcb.StopBits = stop_bits; // ã‚¹ãƒˆãƒƒãƒ—ãƒ“ãƒƒãƒˆ
+  dcb.Parity = parity; 		// ãƒ‘ãƒªãƒ†ã‚£
+  // è¨­å®šã™ã‚‹
   SetCommState(port_c, &dcb);
 
   return 1;
@@ -977,7 +1017,7 @@ int CamshiftDemo::serial_port_c_params (HANDLE port_c,
 
 
 
-// ƒ|[ƒgA‚©‚ç1byte“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆAã‹ã‚‰1byteèª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 extern "C" int CamshiftDemo::port_a_getc(HANDLE port_a){
 	unsigned char buf;
 	size_t s;
@@ -990,7 +1030,7 @@ extern "C" int CamshiftDemo::port_a_getc(HANDLE port_a){
 }
 
 
-// ƒ|[ƒgB‚©‚ç1byte“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆBã‹ã‚‰1byteèª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::port_b_getc(HANDLE port_b){
 	unsigned char buf;
 	size_t s;
@@ -1001,7 +1041,7 @@ int CamshiftDemo::port_b_getc(HANDLE port_b){
 
   return (int)buf;
 }
-// ƒ|[ƒgC‚©‚ç1byte“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆCã‹ã‚‰1byteèª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 int CamshiftDemo::port_c_getc(HANDLE port_c){
 	unsigned char buf;
 	size_t s;
@@ -1023,7 +1063,7 @@ size_t CamshiftDemo::port_a_write(HANDLE port_a, void *buf, size_t nbytes)
     return (size_t)num;
 }
 
-// ƒ|[ƒgB‚É‘‚«‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆBã«æ›¸ãè¾¼ã‚€é–¢æ•°ã®å®šç¾©
 size_t CamshiftDemo::port_b_write(HANDLE port_b, void *buf, size_t nbytes)
 {
     DWORD num;
@@ -1031,7 +1071,7 @@ size_t CamshiftDemo::port_b_write(HANDLE port_b, void *buf, size_t nbytes)
     WriteFile(port_b, buf, nbytes, &num, NULL);
     return (size_t)num;
 }
-// ƒ|[ƒgC‚É‘‚«‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆCã«æ›¸ãè¾¼ã‚€é–¢æ•°ã®å®šç¾©
 size_t CamshiftDemo::port_c_write(HANDLE port_c, void *buf, size_t nbytes)
 {
     DWORD num;
@@ -1041,7 +1081,7 @@ size_t CamshiftDemo::port_c_write(HANDLE port_c, void *buf, size_t nbytes)
 }
 
 
-// ƒ|[ƒgA‚©‚ç“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆAã‹ã‚‰èª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 size_t CamshiftDemo::port_a_read(HANDLE port_a, void *buf, size_t nbytes)
 {
   DWORD num;
@@ -1049,7 +1089,7 @@ size_t CamshiftDemo::port_a_read(HANDLE port_a, void *buf, size_t nbytes)
   ReadFile(port_a, buf, nbytes, &num, NULL);
   return (size_t)num;
 }
-// ƒ|[ƒgB‚©‚ç“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆBã‹ã‚‰èª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 size_t CamshiftDemo::port_b_read(HANDLE port_b, void *buf, size_t nbytes)
 {
   DWORD num;
@@ -1057,7 +1097,7 @@ size_t CamshiftDemo::port_b_read(HANDLE port_b, void *buf, size_t nbytes)
   ReadFile(port_b, buf, nbytes, &num, NULL);
   return (size_t)num;
 }
-// ƒ|[ƒgC‚©‚ç“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆCã‹ã‚‰èª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 size_t CamshiftDemo::port_c_read(HANDLE port_c, void *buf, size_t nbytes)
 {
   DWORD num;
@@ -1071,18 +1111,18 @@ extern "C" HANDLE CamshiftDemo::open_port_a(char name[]){
 
 	const char* c = name;
 
-	// ƒ|[ƒg‚ğŠJ‚­
+	// ãƒãƒ¼ãƒˆã‚’é–‹ã
 	port_a = CreateFileA(
-	  "COM9",								// ’ÊMƒfƒoƒCƒX‚Ì–¼‘O‚ÌƒAƒhƒŒƒX //
+	  "COM9",								// é€šä¿¡ãƒ‡ãƒã‚¤ã‚¹ã®åå‰ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ //
 	  //name,
-	  GENERIC_READ | GENERIC_WRITE,		//ƒAƒNƒZƒX (“Ç‚İæ‚è‚¨‚æ‚Ñ‘‚«‚İ) ƒ‚[ƒh //
-	  0,								// ‹¤—Lƒ‚[ƒh //
-	  NULL,								// ƒZƒLƒ…ƒŠƒeƒB‹Lqq‚ÌƒAƒhƒŒƒX //
-	  OPEN_EXISTING,					// ì¬•û–@ //
-	  0,								// ƒtƒ@ƒCƒ‹‘®« //
-	  NULL);							// ƒRƒs[‚·‚é‘®«•t‚«ƒtƒ@ƒCƒ‹‚Ìƒnƒ“ƒhƒ‹ //
+	  GENERIC_READ | GENERIC_WRITE,		//ã‚¢ã‚¯ã‚»ã‚¹ (èª­ã¿å–ã‚ŠãŠã‚ˆã³æ›¸ãè¾¼ã¿) ãƒ¢ãƒ¼ãƒ‰ //
+	  0,								// å…±æœ‰ãƒ¢ãƒ¼ãƒ‰ //
+	  NULL,								// ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£è¨˜è¿°å­ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ //
+	  OPEN_EXISTING,					// ä½œæˆæ–¹æ³• //
+	  0,								// ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§ //
+	  NULL);							// ã‚³ãƒ”ãƒ¼ã™ã‚‹å±æ€§ä»˜ããƒ•ã‚¡ã‚¤ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ« //
 	if(port_a == INVALID_HANDLE_VALUE){
-		// ƒ|[ƒg‚ªŠJ‚¯‚È‚©‚Á‚½
+		// ãƒãƒ¼ãƒˆãŒé–‹ã‘ãªã‹ã£ãŸ
 		fprintf(stderr, "Serial port 9 (%s) open error.\n", name);
 		return (HANDLE)-1;
 	}
@@ -1095,18 +1135,18 @@ extern "C" HANDLE CamshiftDemo::open_port_b(char name[]){
 
 	const char* c = name;
 
-	// ƒ|[ƒg‚ğŠJ‚­
+	// ãƒãƒ¼ãƒˆã‚’é–‹ã
 	port_b = CreateFileA(
-	  "\\\\.\\COM12",								// ’ÊMƒfƒoƒCƒX‚Ì–¼‘O‚ÌƒAƒhƒŒƒX //
+	  "\\\\.\\COM12",								// é€šä¿¡ãƒ‡ãƒã‚¤ã‚¹ã®åå‰ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ //
 	  //name,
-	  GENERIC_READ | GENERIC_WRITE,		//ƒAƒNƒZƒX (“Ç‚İæ‚è‚¨‚æ‚Ñ‘‚«‚İ) ƒ‚[ƒh //
-	  0,								// ‹¤—Lƒ‚[ƒh //
-	  NULL,								// ƒZƒLƒ…ƒŠƒeƒB‹Lqq‚ÌƒAƒhƒŒƒX //
-	  OPEN_EXISTING,					// ì¬•û–@ //
-	  0,								// ƒtƒ@ƒCƒ‹‘®« //
-	  NULL);							// ƒRƒs[‚·‚é‘®«•t‚«ƒtƒ@ƒCƒ‹‚Ìƒnƒ“ƒhƒ‹ //
+	  GENERIC_READ | GENERIC_WRITE,		//ã‚¢ã‚¯ã‚»ã‚¹ (èª­ã¿å–ã‚ŠãŠã‚ˆã³æ›¸ãè¾¼ã¿) ãƒ¢ãƒ¼ãƒ‰ //
+	  0,								// å…±æœ‰ãƒ¢ãƒ¼ãƒ‰ //
+	  NULL,								// ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£è¨˜è¿°å­ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ //
+	  OPEN_EXISTING,					// ä½œæˆæ–¹æ³• //
+	  0,								// ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§ //
+	  NULL);							// ã‚³ãƒ”ãƒ¼ã™ã‚‹å±æ€§ä»˜ããƒ•ã‚¡ã‚¤ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ« //
 	if(port_b == INVALID_HANDLE_VALUE){
-		// ƒ|[ƒg‚ªŠJ‚¯‚È‚©‚Á‚½
+		// ãƒãƒ¼ãƒˆãŒé–‹ã‘ãªã‹ã£ãŸ
 		fprintf(stderr, "Serial port 12 (%s) open error.\n", name);
 		return (HANDLE)-1;
 	}
@@ -1119,18 +1159,18 @@ extern "C" HANDLE CamshiftDemo::open_port_c(char name[]){
 
 	const char* c = name;
 
-	// ƒ|[ƒg‚ğŠJ‚­
+	// ãƒãƒ¼ãƒˆã‚’é–‹ã
 	port_c = CreateFileA(
-	  "\\\\.\\COM10",								// ’ÊMƒfƒoƒCƒX‚Ì–¼‘O‚ÌƒAƒhƒŒƒX //
+	  "\\\\.\\COM10",								// é€šä¿¡ãƒ‡ãƒã‚¤ã‚¹ã®åå‰ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ //
 	  //name,
-	  GENERIC_READ | GENERIC_WRITE,		//ƒAƒNƒZƒX (“Ç‚İæ‚è‚¨‚æ‚Ñ‘‚«‚İ) ƒ‚[ƒh //
-	  0,								// ‹¤—Lƒ‚[ƒh //
-	  NULL,								// ƒZƒLƒ…ƒŠƒeƒB‹Lqq‚ÌƒAƒhƒŒƒX //
-	  OPEN_EXISTING,					// ì¬•û–@ //
-	  0,								// ƒtƒ@ƒCƒ‹‘®« //
-	  NULL);							// ƒRƒs[‚·‚é‘®«•t‚«ƒtƒ@ƒCƒ‹‚Ìƒnƒ“ƒhƒ‹ //
+	  GENERIC_READ | GENERIC_WRITE,		//ã‚¢ã‚¯ã‚»ã‚¹ (èª­ã¿å–ã‚ŠãŠã‚ˆã³æ›¸ãè¾¼ã¿) ãƒ¢ãƒ¼ãƒ‰ //
+	  0,								// å…±æœ‰ãƒ¢ãƒ¼ãƒ‰ //
+	  NULL,								// ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£è¨˜è¿°å­ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ //
+	  OPEN_EXISTING,					// ä½œæˆæ–¹æ³• //
+	  0,								// ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§ //
+	  NULL);							// ã‚³ãƒ”ãƒ¼ã™ã‚‹å±æ€§ä»˜ããƒ•ã‚¡ã‚¤ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ« //
 	if(port_c == INVALID_HANDLE_VALUE){
-		// ƒ|[ƒg‚ªŠJ‚¯‚È‚©‚Á‚½
+		// ãƒãƒ¼ãƒˆãŒé–‹ã‘ãªã‹ã£ãŸ
 		fprintf(stderr, "Serial port10 (%s) open error.\n", name);
 		return (HANDLE)-1;
 	}
@@ -1183,6 +1223,7 @@ extern "C" void CamshiftDemo::fingermoveABC(char ma[],char mb[],char mc[], HANDL
 
     //encoder_data_get_fnc(port_c);
 
+	//Sleep(300);
 return;
 }
 
@@ -1194,12 +1235,12 @@ extern "C" void CamshiftDemo::encoder_data_get_fnc(HANDLE port){
 	char encoder1_data_RX[32];
 	char encoder2_data_RX[32];
 
-	//ƒf[ƒ^‘—M//
+	//ãƒ‡ãƒ¼ã‚¿é€ä¿¡//
 	encoder_data_TX[0] = 'e';
 	port_putc(encoder_data_TX[0], port);
 	//printf("TX[0]=%c\r\n",TX[0]);
 
-	//ƒf[ƒ^óM//
+	//ãƒ‡ãƒ¼ã‚¿å—ä¿¡//
 	//if((char)port_getc(port)==)
 	encoder1_data_RX[0] = (char)CamshiftDemo::port_getc(port);
 	encoder1_data_RX[1] = (char)CamshiftDemo::port_getc(port);
@@ -1225,11 +1266,11 @@ extern "C" void CamshiftDemo::encoder_re_init_fnc(char init_1[8],char init_2[8],
 	char encoder_init_TX[32];
 //	char encoder_init_RX[32];
 
-	//mode data ‘—M//
+	//mode data é€ä¿¡//
 	encoder_init_TX[0] = 'i';
 	port_putc(encoder_init_TX[0], port);
 
-	// ‰Šú‰»—p encoder1 data ‘—M //
+	// åˆæœŸåŒ–ç”¨ encoder1 data é€ä¿¡ //
 	encoder_init_TX[1] = init_1[0];
 	encoder_init_TX[2] = init_1[1];
 	encoder_init_TX[3] = init_1[2];
@@ -1239,7 +1280,7 @@ extern "C" void CamshiftDemo::encoder_re_init_fnc(char init_1[8],char init_2[8],
 	port_putc(encoder_init_TX[3], port);
 	port_putc(encoder_init_TX[4], port);
 
-	// ‰Šú‰»—p encoder2 data ‘—M //
+	// åˆæœŸåŒ–ç”¨ encoder2 data é€ä¿¡ //
 	encoder_init_TX[5] = init_2[0];
 	encoder_init_TX[6] = init_2[1];
 	encoder_init_TX[7] = init_2[2];
@@ -1277,7 +1318,7 @@ extern "C" size_t CamshiftDemo::port_write(HANDLE port, void *buf, size_t nbytes
     return (size_t)num;
 }
 
-// ƒ|[ƒg‚©‚ç“Ç‚İ‚ŞŠÖ”‚Ì’è‹`
+// ãƒãƒ¼ãƒˆã‹ã‚‰èª­ã¿è¾¼ã‚€é–¢æ•°ã®å®šç¾©
 extern "C" size_t CamshiftDemo::port_read(HANDLE port, void *buf, size_t nbytes)
 {
   DWORD num;
