@@ -13,6 +13,8 @@
 #include "camShiftDemo.h" /* デモ用ヘッダ */
 
 
+#define COM_SPEED 921600
+
 #include <windows.h>
 #include <mmsystem.h>
 #include <time.h>
@@ -68,17 +70,13 @@ CamshiftDemo::game(void* param)
 		fingermoveABC("18884444","33334444","19884344",camshift->port_a,camshift->port_b,camshift->port_c);
 		camshift->robot.rarm.moveFore(0,-2,0,speed * 2);
 		PlaySound("C:\\Documents and Settings\\hrpuser\\デスクトップ\\jkp.wav", NULL,  (SND_ASYNC|SND_FILENAME));
-		
 		camshift->robot.rarm.moveFore(0,2,0,speed);
 		camshift->robot.rarm.moveFore(-1,-3,0,speed * 2);
-		camshift->robot.rarm.moveFore(0,2,0,speed);	
+		camshift->robot.rarm.moveFore(0,2,0,speed);
 		camshift->robot.rarm.moveFore(0,-2,0,speed * 2);
-		camshift->robot.wait();
-
-		//encoder_data_get_fnc(camshift->port_c);
-
-		// LOOP WAIT UNTIL POI IS SAID
-		//Wait until number of fingers is stabilized
+		camshift->robot.wait();		//encoder_data_get_fnc(camshift->port_c);		
+		// LOOP WAIT UNTIL POI IS SAID		
+		//Wait until number of fingers is stabilized		
 		Sleep(170);// <-- KOKO WA POINTO!!
 
 		findfingers(camshift);
@@ -682,6 +680,9 @@ CamshiftDemo::~CamshiftDemo()
   robot.servoOFF();
 #endif
   ucam->close();
+
+
+
 }
 
 /** 
@@ -876,6 +877,7 @@ CamshiftDemo::run()
 
 
 // INI
+	cout << "init with suzukwa new speed" << endl << endl;
 	fingers = 0;
 	firstime = true;
 
@@ -894,9 +896,12 @@ CamshiftDemo::run()
 		cout << "return -1";
 
 	// ポートの設定
-	serial_port_a_params(port_a,115200, 8, ONESTOPBIT, NOPARITY);
-	serial_port_b_params(port_b,115200, 8, ONESTOPBIT, NOPARITY);
-	serial_port_c_params(port_c,115200, 8, ONESTOPBIT, NOPARITY);
+	//serial_port_a_params(port_a,115200, 8, ONESTOPBIT, NOPARITY);
+	//serial_port_b_params(port_b,115200, 8, ONESTOPBIT, NOPARITY);
+	//serial_port_c_params(port_c,115200, 8, ONESTOPBIT, NOPARITY);
+	serial_port_a_params(port_a, COM_SPEED, 8, ONESTOPBIT, NOPARITY);
+	serial_port_b_params(port_b, COM_SPEED, 8, ONESTOPBIT, NOPARITY);
+	serial_port_c_params(port_c, COM_SPEED, 8, ONESTOPBIT, NOPARITY);
 
 	// カメラパラメータの設定
 	for(int i=0; i<cam_num; i++) {
@@ -915,6 +920,12 @@ CamshiftDemo::run()
 		double fps = ucam->setFPS(i, 30.0);
 	}
 	showImage();
+
+    // PORT CLOSE
+	close_port_a(port_a);
+	close_port_a(port_b);
+	close_port_a(port_c);
+
 }
 
 
@@ -1326,3 +1337,21 @@ extern "C" size_t CamshiftDemo::port_read(HANDLE port, void *buf, size_t nbytes)
   ReadFile(port, buf, nbytes, &num, NULL);
   return (size_t)num;
 }
+
+
+// ポートAを閉じる関数の定義
+extern "C" void CamshiftDemo::close_port_a(HANDLE port_a){
+  // ポートを閉じる
+  CloseHandle(port_a);
+}  
+
+// ポートBを閉じる関数の定義
+extern "C" void CamshiftDemo::close_port_b(HANDLE port_b){
+  // ポートを閉じる
+  CloseHandle(port_b);
+}  
+// ポートCを閉じる関数の定義
+extern "C" void CamshiftDemo::close_port_c(HANDLE port_c){
+  // ポートを閉じる
+  CloseHandle(port_c);
+}  
